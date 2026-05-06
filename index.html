@@ -518,7 +518,8 @@
       'quotation; pending payment':                 { step: 1, label: 'Quotation — pending payment', sub: 'A quotation has been prepared. Please review the amount below and contact us to proceed.', showQuote: true },
       'quotation accepted; repair begun':           { step: 2, label: 'Quotation accepted — repair begun', sub: 'Payment confirmed. Our watchmaker has begun the repair.' },
       'quotation rejected; return without repair':  { step: 1, label: 'Quotation rejected — return without repair', sub: 'You have declined the quotation. Your timepiece is being prepared for return.', rejected: true },
-      'ready for collection':                       { step: 3, label: 'Ready for collection', sub: 'Your timepiece is ready. Please bring your job number and ID when collecting.', collection: true }
+      'ready for collection':                       { step: 3, label: 'Ready for collection', sub: 'Your timepiece is ready. Please bring your job number and ID when collecting.', collection: true },
+      'collected':                                  { step: 4, label: 'Collected', sub: 'Your timepiece has been collected. Thank you for choosing Regence Group.', collected: true }
     };
 
     async function checkRepair() {
@@ -608,7 +609,7 @@
     }
 
     function buildProgress(activeStep, rejected) {
-      const steps  = ['Received', 'Assessment', 'In Repair', 'Ready'];
+      const steps  = ['Received', 'Assessment', 'In Repair', 'Ready', 'Collected'];
       const wrap   = document.getElementById('p-steps');
       const track  = document.getElementById('p-track');
       wrap.innerHTML = '';
