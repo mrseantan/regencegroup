@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -42,7 +43,7 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .hero { min-height: calc(100vh - 64px); display: flex; align-items: center; background: var(--warm); position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; right: -10%; top: 0; bottom: 0; width: 55%; background: var(--warm-mid); }
-    .hero-content { position: relative; z-index: 1; max-width: 560px; }
+    .hero-content { position: relative; z-index: 1; max-width: 520px; }
     .hero-eyebrow { font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; }
     .hero h1 { font-size: clamp(40px, 5vw, 64px); font-weight: 300; color: var(--ink); margin-bottom: 24px; line-height: 1.1; }
     .hero h1 em { font-style: italic; color: var(--gold-dark); }
@@ -212,6 +213,7 @@
           <span class="btn btn-outline" onclick="showPage('contact')">Partner With Us</span>
         </div>
       </div>
+
     </section>
     <section class="section" style="background: var(--white);">
       <div class="container">
@@ -362,12 +364,15 @@
             <div class="status-text" id="r-status-text">—</div>
             <div class="status-sub" id="r-status-sub"></div>
             <div id="r-quotation-box" style="display:none;">
-              <div class="quotation-box">
-                <div>
-                  <div class="quotation-label">Quotation Amount</div>
-                  <div class="quotation-amount" id="r-amount">—</div>
+              <div class="payment-box">
+                <div class="payment-box-label">Quotation Amount</div>
+                <div class="payment-amount" id="r-amount">—</div>
+                <a id="r-payment-link" href="#" target="_blank" class="payment-btn">Pay Now</a>
+                <div class="payment-divider"><span>or scan to pay</span></div>
+                <div class="payment-qr">
+                  <div id="qr-code"></div>
+                  <p class="payment-qr-label">Scan with your phone camera</p>
                 </div>
-                <div style="font-size: 13px; color: var(--muted); max-width: 240px; line-height: 1.6;">Please contact us to proceed with payment and confirm your repair.</div>
               </div>
             </div>
             <div id="r-collection-box" style="display:none;">
@@ -584,11 +589,35 @@
       document.getElementById('r-status-text').textContent = sInfo.label;
       document.getElementById('r-status-sub').textContent  = sInfo.sub;
 
-      // Quotation box
+      // Quotation + payment box
       const qBox = document.getElementById('r-quotation-box');
       if (sInfo.showQuote && d.quotationAmount) {
         document.getElementById('r-amount').textContent = 'SGD ' + d.quotationAmount;
         qBox.style.display = 'block';
+        // Payment link
+        const payBtn = document.getElementById('r-payment-link');
+        const qrEl   = document.getElementById('qr-code');
+        qrEl.innerHTML = '';
+        if (d.paymentLink) {
+          payBtn.href = d.paymentLink;
+          payBtn.style.display = 'block';
+          try {
+            new QRCode(qrEl, {
+              text: d.paymentLink,
+              width: 160,
+              height: 160,
+              colorDark: '#1A1814',
+              colorLight: '#FDFCFA',
+              correctLevel: QRCode.CorrectLevel.M
+            });
+          } catch(e) { qrEl.style.display = 'none'; }
+        } else {
+          payBtn.style.display = 'none';
+          qrEl.style.display = 'none';
+          // fallback message if no payment link yet
+          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7">Please contact us to proceed with payment and confirm your repair.</p>';
+          qrEl.style.display = 'block';
+        }
       } else {
         qBox.style.display = 'none';
       }
@@ -647,6 +676,7 @@
       const el = document.getElementById(id);
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') checkRepair(); });
     });
+  
   </script>
 
 </body>
