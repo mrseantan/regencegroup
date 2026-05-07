@@ -649,73 +649,59 @@
     })();
 
     // Handle Stripe redirect back after payment
-    (function(){
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('payment') !== 'success') return;
-      const job    = params.get('job')    || '';
-      const amount = params.get('amount') || '';
+    // Stored at window level so it can fire reliably after all JS initialises
+    window._paymentSuccessJob    = new URLSearchParams(window.location.search).get('job')    || '';
+    window._paymentSuccessAmount = new URLSearchParams(window.location.search).get('amount') || '';
+    window._paymentSuccess       = new URLSearchParams(window.location.search).get('payment') === 'success';
 
-      function showSuccess() {
-        // show services page
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-        const pg  = document.getElementById('page-services');
-        const nav = document.getElementById('nav-services');
-        if (pg)  pg.classList.add('active');
-        if (nav) nav.classList.add('active');
+    function showPaymentSuccess() {
+      if (!window._paymentSuccess) return;
+      const job    = window._paymentSuccessJob;
+      const amount = window._paymentSuccessAmount;
 
-        // show success box
-        const qBox       = document.getElementById('r-quotation-box');
-        const successBox = document.getElementById('r-success-box');
-        const paymentBox = document.getElementById('payment-box-inner');
-        const declinedBox= document.getElementById('declined-box');
+      // activate services page
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      const pg  = document.getElementById('page-services');
+      const nav = document.getElementById('nav-services');
+      if (pg)  pg.classList.add('active');
+      if (nav) nav.classList.add('active');
 
-        // show tracker result container but hide the header fields
-        const resultEl = document.getElementById('t-result');
-        if (resultEl) resultEl.classList.add('visible');
-        const resultHeader = resultEl ? resultEl.querySelector('.result-header') : null;
-        const progressWrap = resultEl ? resultEl.querySelector('.progress-wrap') : null;
-        const statusDetail = resultEl ? resultEl.querySelector('.status-detail') : null;
-        if (resultHeader) resultHeader.style.display = 'none';
-        if (progressWrap) progressWrap.style.display = 'none';
-        if (statusDetail) statusDetail.style.display = 'none';
-        if (qBox)        qBox.setAttribute('style', 'display:block !important');
-        if (paymentBox)  paymentBox.setAttribute('style', 'display:none !important');
-        if (declinedBox) declinedBox.setAttribute('style', 'display:none !important');
-        if (successBox)  {
-          successBox.setAttribute('style', 'display:block !important');
-          const sJob = document.getElementById('s-job');
-          const sAmt = document.getElementById('s-amount');
-          const sRef = document.getElementById('s-ref');
-          if (sJob) sJob.textContent = job;
-          if (sAmt) sAmt.textContent = 'SGD ' + (parseFloat(amount)||0).toFixed(2);
-          if (sRef) sRef.textContent = job;
-          successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        // clean URL last
-        window.history.replaceState({}, '', window.location.pathname);
+      // show tracker result container
+      const resultEl = document.getElementById('t-result');
+      if (resultEl) {
+        resultEl.classList.add('visible');
+        const rh = resultEl.querySelector('.result-header');
+        const pw = resultEl.querySelector('.progress-wrap');
+        const sd = resultEl.querySelector('.status-detail');
+        if (rh) rh.style.display = 'none';
+        if (pw) pw.style.display = 'none';
+        if (sd) sd.style.display = 'none';
       }
 
-      // run after DOM and page rendering complete
-      function tryShowSuccess() {
-        const pg = document.getElementById('page-services');
-        const resultEl = document.getElementById('t-result');
-        const successBox = document.getElementById('r-success-box');
-        // if elements exist and page is ready, run
-        if (pg && resultEl && successBox) {
-          showSuccess();
-        } else {
-          // retry until ready
-          setTimeout(tryShowSuccess, 100);
-        }
+      // hide payment box, show success box
+      const qBox       = document.getElementById('r-quotation-box');
+      const successBox = document.getElementById('r-success-box');
+      const paymentBox = document.getElementById('payment-box-inner');
+      const declinedBox= document.getElementById('declined-box');
+      if (qBox)        qBox.style.display        = 'block';
+      if (paymentBox)  paymentBox.style.display  = 'none';
+      if (declinedBox) declinedBox.style.display = 'none';
+      if (successBox)  {
+        successBox.style.display = 'block';
+        const sJob = document.getElementById('s-job');
+        const sAmt = document.getElementById('s-amount');
+        const sRef = document.getElementById('s-ref');
+        if (sJob) sJob.textContent = job;
+        if (sAmt) sAmt.textContent = 'SGD ' + (parseFloat(amount)||0).toFixed(2);
+        if (sRef) sRef.textContent = job;
+        setTimeout(() => successBox.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       }
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryShowSuccess);
-      } else {
-        tryShowSuccess();
-      }
-    })();
+
+      // clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+      window._paymentSuccess = false;
+    }
 
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -726,6 +712,9 @@
       if (nav) { nav.classList.add('active'); }
       window.scrollTo(0, 0);
     }
+
+    // Fire payment success after all functions are defined
+    showPaymentSuccess();
 
     // ── CONTACT FORM (Netlify) ──
     const contactForm = document.getElementById('contact-form');
