@@ -93,15 +93,20 @@ exports.handler = async function(event) {
       try {
         const cleanAmt = quotationAmt.replace(/[^0-9.]/g, '').trim();
         const amountCents = Math.round(parseFloat(cleanAmt) * 100);
-        console.log(`Amount raw: "${quotationAmt}" cleaned: "${cleanAmt}" cents: ${amountCents}`);
+        const siteUrl = process.env.SITE_URL || 'regencegroup.com';
+        const successUrl = `https://${siteUrl}/?payment=success&job=${encodeURIComponent(match[1] || jobNumber)}&amount=${encodeURIComponent(cleanAmt)}`;
+        const cancelUrl  = `https://${siteUrl}/?job=${encodeURIComponent(match[1] || jobNumber)}`;
+        console.log(`Amount cents: ${amountCents}, successUrl: ${successUrl}`);
         if (amountCents > 0) {
-          const stripeRes = await fetch('https://api.stripe.com/v1/payment_links', {
+          // Use Checkout Sessions instead of Payment Links — supports custom redirects on all plans
+          const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${stripeKey}`,
               'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: new URLSearchParams({
+              'mode': 'payment',
               'line_items[0][price_data][currency]': 'sgd',
               'line_items[0][price_data][product_data][name]': `Watch Repair — Job ${match[1] || jobNumber}`,
               'line_items[0][price_data][product_data][description]': `Authorised repair service for ${customerName || 'customer'}`,
@@ -114,15 +119,17 @@ exports.handler = async function(event) {
               'metadata[customer_email]': String(customerEmail || ''),
               'metadata[customer_phone]': String(match[4] || ''),
               'metadata[sav_repair_no]': String(match[2] || ''),
-              'metadata[amount]': String(quotationAmt),
-              'after_completion[type]': 'redirect',
-              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/?payment=success&job=${encodeURIComponent(match[1] || jobNumber)}&amount=${encodeURIComponent(quotationAmt)}`
+              'metadata[amount]': String(cleanAmt),
+              'success_url': successUrl,
+              'cancel_url':  cancelUrl,
+              'customer_email': String(customerEmail || ''),
+              'expires_at': String(Math.floor(Date.now()/1000) + 3600) // expires in 1 hour
             }).toString()
           });
           const stripeData = await stripeRes.json();
-          console.log('Stripe response:', JSON.stringify(stripeData));
+          console.log('Stripe checkout session response:', JSON.stringify(stripeData));
           if (stripeData.url) paymentLink = stripeData.url;
-          else console.error('Stripe did not return a URL:', JSON.stringify(stripeData));
+          else console.error('Stripe did not return a session URL:', JSON.stringify(stripeData));
         }
       } catch (e) {
         console.error('Stripe error:', e);
