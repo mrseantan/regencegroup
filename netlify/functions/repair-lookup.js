@@ -115,7 +115,7 @@ exports.handler = async function(event) {
               'metadata[customer_email]': String(customerEmail || ''),
               'metadata[amount]': String(quotationAmt),
               'after_completion[type]': 'redirect',
-              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/payment-success`
+              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/?payment=success`
             }).toString()
           });
 
