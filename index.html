@@ -740,12 +740,22 @@
     if (contactForm) {
       contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        fetch('/', { method: 'POST', body: new FormData(contactForm) })
-          .then(() => {
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
+        fetch('/.netlify/functions/contact-form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(contactForm)).toString()
+        })
+          .then(res => {
+            if (!res.ok) throw new Error('Failed');
             contactForm.style.display = 'none';
             document.getElementById('form-success').classList.add('visible');
           })
-          .catch(() => alert('Something went wrong. Please try again.'));
+          .catch(() => {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Enquiry'; }
+            alert('Something went wrong. Please try again.');
+          });
       });
     }
 
