@@ -635,7 +635,7 @@
           window._paymentSuccess       = true;
           window._paymentSuccessJob    = data.job    || '';
           window._paymentSuccessAmount = data.amount || '';
-          localStorage.removeItem('_paymentSuccess');
+          // Don't remove yet — showPaymentSuccess will remove it after display
         } else {
           window._paymentSuccess = false;
           window._paymentSuccessJob = '';
@@ -982,9 +982,15 @@
       }
     })();
 
-    // Fire payment success — delay to ensure full render
+    // Fire payment success after DOM fully loaded
     if (window._paymentSuccess) {
-      setTimeout(showPaymentSuccess, 800);
+      if (document.readyState === 'complete') {
+        setTimeout(showPaymentSuccess, 500);
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(showPaymentSuccess, 500);
+        });
+      }
     }
   </script>
 
