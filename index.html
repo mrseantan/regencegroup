@@ -462,7 +462,7 @@
                   <p class="payment-note">To authorise the repair, please complete payment below. <strong>All payments are strictly non-refundable.</strong> Declining will result in your timepiece being returned without repair.</p>
                   <div class="cta-wrap">
                     <span class="cta-badge">Secure Payment</span>
-                    <a id="r-payment-link" href="#" target="_blank" class="payment-btn">Proceed to Payment</a>
+                    <div id="r-payment-link" onclick="openPaymentLink()" style="display:block;width:100%;padding:18px 16px;background:#1A1814;color:#FDFCFA;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:'Jost',sans-serif;box-sizing:border-box;">Proceed to Payment</div>
                   </div>
                   <div class="trust-row">
                     <div class="trust-item"><div class="trust-dot"></div><span>256-bit encrypted</span></div>
@@ -796,15 +796,24 @@
         window._currentJob = d;
         const payBtn = document.getElementById('r-payment-link');
         const qrEl   = document.getElementById('qr-code');
+        // always reset visibility first
+        payBtn.style.display = 'block';
+        payBtn.style.removeProperty('display');
+        qrEl.style.display = 'block';
         qrEl.innerHTML = '';
         if (d.paymentLink) {
-          payBtn.href = d.paymentLink;
+          _paymentUrl = d.paymentLink; payBtn.style.display = 'block';
           try {
             new QRCode(qrEl, { text: d.paymentLink, width: 160, height: 160, colorDark: '#1A1814', colorLight: '#FDFCFA', correctLevel: QRCode.CorrectLevel.M });
-          } catch(e) { qrEl.style.display = 'none'; }
+          } catch(e) {
+            console.error('QR error:', e);
+            qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);">QR code unavailable — use the button above.</p>';
+          }
         } else {
+          // Stripe link missing — show fallback message but keep layout
           payBtn.style.display = 'none';
-          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7">Please contact us to proceed with payment.</p>';
+          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7;padding:8px 0;">Payment link is being prepared. Please refresh the page in a moment or contact our after-sales team quoting your job reference.</p>';
+          console.warn('No payment link returned for job:', d.jobNumber, 'brand:', d.brand);
         }
       } else {
         qBox.style.display = 'none';
@@ -860,6 +869,12 @@
     }
 
     // ── DECLINE QUOTATION ──
+    // Open payment link
+    var _paymentUrl = null;
+    function openPaymentLink(){
+      if(_paymentUrl) window.open(_paymentUrl, '_blank');
+    }
+
     function showDeclineConfirm(){ document.getElementById('confirm-overlay').classList.add('visible'); }
     function hideDeclineConfirm(){ document.getElementById('confirm-overlay').classList.remove('visible'); }
 
