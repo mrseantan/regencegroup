@@ -184,6 +184,107 @@
     .form-success p { font-size: 14px; color: var(--muted); }
     .payment-success-banner { display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 200; background: #2D6A4F; color: #fff; padding: 16px 48px; text-align: center; font-family: 'Jost', sans-serif; font-size: 13px; letter-spacing: 0.1em; }
     .payment-success-banner.visible { display: block; }
+    /* ── PAYMENT BOX ── */
+    .payment-box {
+      margin-top: 24px;
+      background: var(--white);
+      border: 0.5px solid var(--border);
+      overflow: hidden;
+    }
+    .payment-box-header {
+      padding: 28px 32px 0;
+      border-bottom: 0.5px solid var(--border);
+      padding-bottom: 24px;
+      background: var(--warm);
+    }
+    .payment-box-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .payment-box-amount-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .payment-box-currency {
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .payment-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .payment-box-body { padding: 28px 32px; }
+    .payment-box-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .payment-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--ink);
+      color: var(--white);
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      margin-bottom: 0;
+      transition: background 0.2s;
+    }
+    .payment-btn:hover { background: var(--gold-dark); }
+    .payment-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .payment-divider::before,
+    .payment-divider::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+    .payment-divider span {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .payment-qr {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      background: var(--warm);
+      border: 0.5px solid var(--border);
+    }
+    .payment-qr-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    #qr-code canvas, #qr-code img {
+      display: block;
+      border: 6px solid var(--white);
+      box-shadow: 0 4px 20px rgba(26,24,20,0.1);
+    }
     .footer { background: var(--ink); padding: 48px; display: flex; justify-content: space-between; align-items: center; }
     .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
     .footer-logo span { color: var(--gold); }
@@ -370,14 +471,89 @@
             <div class="status-text" id="r-status-text">—</div>
             <div class="status-sub" id="r-status-sub"></div>
             <div id="r-quotation-box" style="display:none;">
-              <div class="payment-box">
-                <div class="payment-box-label">Quotation Amount</div>
-                <div class="payment-amount" id="r-amount">—</div>
-                <a id="r-payment-link" href="#" target="_blank" class="payment-btn">Pay Now</a>
-                <div class="payment-divider"><span>or scan to pay</span></div>
-                <div class="payment-qr">
-                  <div id="qr-code"></div>
-                  <p class="payment-qr-label">Scan with your phone camera</p>
+              <div class="payment-box" id="payment-box-inner">
+                <div class="payment-header">
+                  <p class="payment-eyebrow">Repair Quotation</p>
+                  <div class="payment-amount-row">
+                    <span class="payment-currency">SGD</span>
+                    <span class="payment-amount" id="r-amount">—</span>
+                  </div>
+                  <p class="payment-ref" id="r-payment-ref">—</p>
+                </div>
+                <div class="payment-body">
+                  <p class="payment-note">To authorise the repair, please complete payment below. <strong>All payments are strictly non-refundable.</strong> Declining will result in your timepiece being returned without repair.</p>
+                  <div class="cta-wrap">
+                    <span class="cta-badge">Secure Payment</span>
+                    <a id="r-payment-link" href="#" target="_blank" class="payment-btn">Proceed to Payment</a>
+                  </div>
+                  <div class="trust-row">
+                    <div class="trust-item"><div class="trust-dot"></div><span>256-bit encrypted</span></div>
+                    <div class="trust-item"><div class="trust-dot"></div><span>Powered by Stripe</span></div>
+                    <div class="trust-item"><div class="trust-dot"></div><span>SGD only</span></div>
+                  </div>
+                  <div class="payment-divider"><span>or scan to pay on mobile</span></div>
+                  <div class="payment-qr">
+                    <div id="qr-code"></div>
+                    <p class="payment-qr-label">Scan with your phone camera</p>
+                  </div>
+                </div>
+                <div class="decline-section">
+                  <button class="payment-btn-decline" onclick="showDeclineConfirm()">Decline Repair</button>
+                </div>
+              </div>
+              <!-- declined state -->
+              <div class="declined-box" id="declined-box">
+                <div class="declined-header">
+                  <p class="declined-eyebrow">Quotation Declined</p>
+                  <h2 class="declined-title">Your timepiece will be<br>returned without repair.</h2>
+                </div>
+                <div class="declined-body">
+                  <p class="declined-text">We have received your decision to decline the repair quotation. Your timepiece is being prepared for return and you will be notified when it is ready for collection.</p>
+                  <div class="declined-rule"></div>
+                  <p class="declined-text" style="font-size:12px;">For further assistance, please contact our after-sales team quoting job reference <strong id="declined-ref" style="color:var(--ink-mid);font-weight:500;">—</strong>.</p>
+                </div>
+              </div>
+              <!-- success state -->
+              <div class="success-box" id="r-success-box">
+                <div class="success-bar"></div>
+                <div class="success-header">
+                  <div class="success-icon">✓</div>
+                  <p class="success-eyebrow">Payment Confirmed</p>
+                  <h2 class="success-title">Your repair has been authorised.</h2>
+                  <p class="success-sub">Thank you. Our watchmaker will begin work on your timepiece shortly.</p>
+                </div>
+                <div class="success-summary">
+                  <div class="summary-row"><span class="summary-label">Job Reference</span><span class="summary-value" id="s-job">—</span></div>
+                  <div class="summary-row"><span class="summary-label">Amount Paid</span><span class="summary-value gold" id="s-amount">—</span></div>
+                  <div class="summary-row"><span class="summary-label">Status</span><span class="summary-value" style="font-size:14px;">Quotation Accepted — Repair Begun</span></div>
+                </div>
+                <div class="success-next">
+                  <p class="next-label">What happens next</p>
+                  <div class="next-item"><span class="next-num">1</span><p class="next-text"><strong>Repair begins immediately.</strong> Our watchmaker has been notified and will commence work on your timepiece.</p></div>
+                  <div class="next-item"><span class="next-num">2</span><p class="next-text"><strong>You will be notified</strong> when your timepiece is ready for collection. Please bring your job reference when collecting.</p></div>
+                  <div class="next-item"><span class="next-num">3</span><p class="next-text">Track your repair status anytime by returning to this page with your job number and mobile number.</p></div>
+                </div>
+                <div class="success-footer">
+                  <p class="success-footer-text">For any enquiries, contact our after-sales team<br>quoting job reference <strong id="s-ref">—</strong>.</p>
+                  <p class="success-footer-brand">Regence<span>.</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- decline confirm modal -->
+            <div class="confirm-overlay" id="confirm-overlay">
+              <div class="confirm-modal">
+                <p class="confirm-modal-eyebrow">One moment</p>
+                <h2 class="confirm-modal-title">Return your watch to full working order?</h2>
+                <p class="confirm-modal-text">Your timepiece has been assessed and is ready for repair. <strong>Proceeding now is the fastest way to have it back in your hands.</strong></p>
+                <div class="confirm-return-wrap">
+                  <span class="confirm-return-badge">Recommended</span>
+                  <button class="confirm-no" onclick="hideDeclineConfirm()">Proceed to Payment</button>
+                </div>
+                <div class="modal-divider"><span>or</span></div>
+                <div class="confirm-yes-wrap">
+                  <p class="confirm-yes-label">Declining will return your timepiece without repair.<br>This cannot be reversed.</p>
+                  <button class="confirm-yes" onclick="confirmDecline()">Decline Repair</button>
                 </div>
               </div>
             </div>
@@ -489,16 +665,36 @@
 
   <script>
     // ── PAGE NAVIGATION ──
-    // Show payment success banner if redirected from Stripe
-    if (window.location.search.includes('payment=success')) {
-      const banner = document.getElementById('payment-banner');
-      if (banner) {
-        banner.classList.add('visible');
-        setTimeout(() => banner.classList.remove('visible'), 8000);
+    // Handle Stripe redirect back after payment
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment') === 'success') {
+        const job    = params.get('job')    || '';
+        const amount = params.get('amount') || '';
+        window.history.replaceState({}, '', window.location.pathname);
+        // navigate to services page and show success box
+        showPage('services');
+        setTimeout(() => {
+          const qBox = document.getElementById('r-quotation-box');
+          const successBox = document.getElementById('r-success-box');
+          const paymentBox = document.getElementById('payment-box-inner');
+          if (qBox) qBox.style.display = 'block';
+          if (paymentBox) paymentBox.style.display = 'none';
+          if (successBox) {
+            successBox.style.display = 'block';
+            const sJob = document.getElementById('s-job');
+            const sAmt = document.getElementById('s-amount');
+            const sRef = document.getElementById('s-ref');
+            if (sJob) sJob.textContent = job;
+            if (sAmt) sAmt.textContent = 'SGD ' + amount;
+            if (sRef) sRef.textContent = job;
+          }
+          // scroll to tracker
+          const tracker = document.querySelector('.tracker-section');
+          if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
       }
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }
+    })();
 
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -609,31 +805,24 @@
       // Quotation + payment box
       const qBox = document.getElementById('r-quotation-box');
       if (sInfo.showQuote && d.quotationAmount) {
-        document.getElementById('r-amount').textContent = 'SGD ' + d.quotationAmount;
+        const amtClean = d.quotationAmount.replace(/[^0-9.]/g, '');
+        document.getElementById('r-amount').textContent = amtClean;
+        const refEl = document.getElementById('r-payment-ref');
+        if (refEl) refEl.textContent = 'Job Ref · ' + (d.jobNumber || '');
         qBox.style.display = 'block';
-        // Payment link
+        // store data for decline function
+        window._currentJob = d;
         const payBtn = document.getElementById('r-payment-link');
         const qrEl   = document.getElementById('qr-code');
         qrEl.innerHTML = '';
         if (d.paymentLink) {
           payBtn.href = d.paymentLink;
-          payBtn.style.display = 'block';
           try {
-            new QRCode(qrEl, {
-              text: d.paymentLink,
-              width: 160,
-              height: 160,
-              colorDark: '#1A1814',
-              colorLight: '#FDFCFA',
-              correctLevel: QRCode.CorrectLevel.M
-            });
+            new QRCode(qrEl, { text: d.paymentLink, width: 160, height: 160, colorDark: '#1A1814', colorLight: '#FDFCFA', correctLevel: QRCode.CorrectLevel.M });
           } catch(e) { qrEl.style.display = 'none'; }
         } else {
           payBtn.style.display = 'none';
-          qrEl.style.display = 'none';
-          // fallback message if no payment link yet
-          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7">Please contact us to proceed with payment and confirm your repair.</p>';
-          qrEl.style.display = 'block';
+          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7">Please contact us to proceed with payment.</p>';
         }
       } else {
         qBox.style.display = 'none';
@@ -686,6 +875,41 @@
       // Animate track width
       const pct = activeStep === 0 ? 0 : (activeStep / (steps.length - 1)) * 100;
       setTimeout(() => { track.style.width = pct + '%'; }, 50);
+    }
+
+    // ── DECLINE QUOTATION ──
+    function showDeclineConfirm(){ document.getElementById('confirm-overlay').classList.add('visible'); }
+    function hideDeclineConfirm(){ document.getElementById('confirm-overlay').classList.remove('visible'); }
+
+    async function confirmDecline(){
+      hideDeclineConfirm();
+      const d = window._currentJob;
+      if (!d) return;
+      try {
+        const res = await fetch('/.netlify/functions/decline-quotation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobNumber:       d.jobNumber,
+            rowIndex:        d.rowIndex,
+            customerName:    d.customerName,
+            brand:           d.brand,
+            quotationAmount: d.quotationAmount
+          })
+        });
+        if (res.ok) {
+          const paymentBox = document.getElementById('payment-box-inner');
+          const declinedBox = document.getElementById('declined-box');
+          const refEl = document.getElementById('declined-ref');
+          if (paymentBox)  paymentBox.style.display  = 'none';
+          if (declinedBox) declinedBox.style.display  = 'block';
+          if (refEl)       refEl.textContent          = d.jobNumber || '—';
+        } else {
+          alert('Something went wrong. Please try again.');
+        }
+      } catch(e) {
+        alert('Connection error. Please try again.');
+      }
     }
 
     // Allow Enter key in tracker inputs

@@ -20,7 +20,6 @@ exports.handler = async function(event) {
   const SHEET_ID = process.env.SHEET_ID;
   if (!API_KEY || !SHEET_ID) return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: 'Server configuration error' }) };
 
-  // Columns A–P
   const range = 'Repair Job!A:P';
   const url   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
 
@@ -41,22 +40,22 @@ exports.handler = async function(event) {
 
   if (rows.length < 2) return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: 'No records found' }) };
 
-  // Column index reference:
+  // Column index reference (0-based):
   // A=0 Date, B=1 Repair Job No., C=2 SAV Repair No., D=3 Name, E=4 Phone No
-  // F=5 Email, G=6 Quotation Price, H=7 Quotation Y/N, I=8 Warranty Y/N
-  // J=9 Invoice No., K=10 SAV Tax Invoice No., L=11 Collection Date
-  // M=12 Remark, N=13 Status, O=14 Brand
+  // F=5 Email, G=6 Customer Request, H=7 Quotation Price
+  // I=8 Quotation Y/N (written by system: Y=paid, N=declined)
+  // J=9 Warranty Y/N, K=10 Invoice No., L=11 SAV Tax Invoice No.
+  // M=12 Collection Date, N=13 Remark, O=14 Status, P=15 Brand
 
   const normaliseJob = s => String(s || '').trim().toLowerCase().replace(/\s+/g, '');
   const searchJob    = normaliseJob(jobNumber);
 
-  // find row index too (for write-back)
-  let matchIndex = -1;
+  let matchRowIndex = -1;
   const match = rows.slice(1).find((row, i) => {
     const rowJob   = normaliseJob(row[1] || '');
     const rowPhone = String(row[4] || '').replace(/\D/g, '');
     const last4    = rowPhone.slice(-4);
-    if (rowJob === searchJob && last4 === mobileLast4) { matchIndex = i + 2; return true; }
+    if (rowJob === searchJob && last4 === mobileLast4) { matchRowIndex = i + 2; return true; }
     return false;
   });
 
@@ -65,29 +64,21 @@ exports.handler = async function(event) {
     body: JSON.stringify({ error: 'No matching record found. Please check your job number and mobile digits.' })
   };
 
-  // Column index reference (0-based):
-  // A=0 Date, B=1 Repair Job No., C=2 SAV Repair No., D=3 Name, E=4 Phone No
-  // F=5 Email, G=6 Customer Request (internal), H=7 Quotation Price
-  // I=8 Quotation Y/N, J=9 Warranty Y/N, K=10 Invoice No.
-  // L=11 SAV Tax Invoice No., M=12 Collection Date, N=13 Remark
-  // O=14 Status, P=15 Brand
-  const warrantyRaw    = String(match[9]  || '').trim().toUpperCase();
-  const warrantyYes    = warrantyRaw === 'Y' || warrantyRaw === 'YES';
-  const quotationRaw   = String(match[8]  || '').trim().toUpperCase();
-  const hasQuote       = quotationRaw === 'Y' || quotationRaw === 'YES';
-  const quotationAmt   = match[7]  ? String(match[7]).trim()  : null;
-  const status         = match[14] ? String(match[14]).trim() : 'Pending';
+  const warrantyRaw  = String(match[9]  || '').trim().toUpperCase();
+  const warrantyYes  = warrantyRaw === 'Y' || warrantyRaw === 'YES';
+  const quotationAmt = match[7]  ? String(match[7]).trim()  : null;
+  const status       = match[14] ? String(match[14]).trim() : 'Pending';
   const collectionDate = match[12] ? String(match[12]).trim() : null;
-  const brand          = match[15] ? String(match[15]).trim() : null;
-  const customerEmail  = match[5]  ? String(match[5]).trim()  : null;
-  const customerName   = match[3]  ? String(match[3]).trim()  : null;
+  const brand        = match[15] ? String(match[15]).trim() : null;
+  const customerEmail = match[5] ? String(match[5]).trim()  : null;
+  const customerName  = match[3] ? String(match[3]).trim()  : null;
+  const remark        = match[13] ? String(match[13]).trim() : null;
 
-  // Generate Stripe payment link if status is quotation pending payment
+  // Generate Stripe payment link when status is quotation pending payment
   let paymentLink = null;
-  let paymentLinkId = null;
   const statusLower = status.toLowerCase();
 
-  if (statusLower === 'quotation; pending payment' && hasQuote && quotationAmt) {
+  if (statusLower === 'quotation; pending payment' && quotationAmt) {
     const stripeKey = brand && brand.toLowerCase() === 'tissot'
       ? process.env.STRIPE_SECRET_KEY_TISSOT
       : null;
@@ -105,25 +96,21 @@ exports.handler = async function(event) {
             body: new URLSearchParams({
               'line_items[0][price_data][currency]': 'sgd',
               'line_items[0][price_data][product_data][name]': `Watch Repair — Job ${match[1] || jobNumber}`,
-              'line_items[0][price_data][product_data][description]': `Repair service for ${customerName || 'customer'}`,
+              'line_items[0][price_data][product_data][description]': `Authorised repair service for ${customerName || 'customer'}`,
               'line_items[0][price_data][unit_amount]': String(amountCents),
               'line_items[0][quantity]': '1',
               'metadata[job_number]': String(match[1] || jobNumber),
-              'metadata[row_index]': String(matchIndex),
+              'metadata[row_index]': String(matchRowIndex),
               'metadata[brand]': String(brand || ''),
               'metadata[customer_name]': String(customerName || ''),
               'metadata[customer_email]': String(customerEmail || ''),
               'metadata[amount]': String(quotationAmt),
               'after_completion[type]': 'redirect',
-              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/?payment=success`
+              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/?payment=success&job=${encodeURIComponent(match[1] || jobNumber)}&amount=${encodeURIComponent(quotationAmt)}`
             }).toString()
           });
-
           const stripeData = await stripeRes.json();
-          if (stripeData.url) {
-            paymentLink = stripeData.url;
-            paymentLinkId = stripeData.id;
-          }
+          if (stripeData.url) paymentLink = stripeData.url;
         }
       } catch (e) {
         console.error('Stripe error:', e);
@@ -141,13 +128,12 @@ exports.handler = async function(event) {
       date:            match[0]  || '',
       status,
       warranty:        warrantyYes,
-      hasQuotation:    hasQuote,
-      quotationAmount: hasQuote && quotationAmt ? quotationAmt : null,
+      quotationAmount: quotationAmt || null,
       collectionDate,
-      remark:          match[13] || '',
+      remark,
       brand,
       paymentLink,
-      paymentLinkId
+      rowIndex:        matchRowIndex
     })
   };
 };
