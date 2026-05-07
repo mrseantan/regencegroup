@@ -697,12 +697,11 @@
         window.history.replaceState({}, '', window.location.pathname);
       }
 
-      // run immediately and again after DOM settles
+      // run once after DOM is ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', showSuccess);
       } else {
-        showSuccess();
-        setTimeout(showSuccess, 500);
+        setTimeout(showSuccess, 100);
       }
     })();
 
@@ -808,6 +807,14 @@
       // Status lookup
       const rawStatus = (d.status || '').trim().toLowerCase();
       const sInfo = STATUS_MAP[rawStatus] || { step: 0, label: d.status || 'Pending', sub: '' };
+
+      // restore any elements hidden by success page flow
+      const rh = document.querySelector('.result-header');
+      const pw = document.querySelector('.progress-wrap');
+      const sd = document.querySelector('.status-detail');
+      if (rh) rh.style.display = '';
+      if (pw) pw.style.display = '';
+      if (sd) sd.style.display = '';
 
       document.getElementById('r-status-text').textContent = sInfo.label;
       document.getElementById('r-status-sub').textContent  = sInfo.sub;
