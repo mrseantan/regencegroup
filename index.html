@@ -336,6 +336,28 @@
     .booking-panel{display:none;}
     .booking-panel.active{display:block;}
     .booking-panel.animating-out{display:block;position:absolute;top:0;left:0;width:100%;pointer-events:none;}
+    .booking-summary{background:var(--warm);border:0.5px solid var(--border);padding:0 24px;margin-bottom:24px;}
+    .booking-summary-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:0.5px solid var(--border);}
+    .booking-summary-row:last-child{border-bottom:none;}
+    .booking-summary-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+    .booking-summary-value{font-size:13px;color:var(--ink);text-align:right;}
+    .booking-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+    .booking-back{background:none;border:0.5px solid var(--border);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:10px 20px;transition:all 0.2s;}
+    .booking-back:hover{border-color:var(--gold);color:var(--ink);}
+    .booking-success{text-align:center;padding:40px 0;}
+    .booking-success-icon{width:48px;height:1px;background:var(--gold);margin:0 auto 24px;}
+    .booking-success-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);margin-bottom:16px;}
+    .booking-success-sub{font-size:13px;color:var(--muted);line-height:1.85;max-width:360px;margin:0 auto 12px;}
+    .booking-cancel-note{font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.7;}
+    .booking-error{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+    .booking-error.visible{display:block;}
+    /* Confirm button hourglass */
+    .booking-btn-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+    #btn-confirm{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:180px;}
+    #btn-confirm .btn-label{display:inline-block;}
+    #btn-confirm.searching .btn-label{opacity:0;position:absolute;pointer-events:none;}
+    #btn-confirm #bk-hg-canvas{display:none;position:absolute;}
+    #btn-confirm.searching #bk-hg-canvas{display:block;}
     .booking-selection-strip{display:flex;gap:0;margin-bottom:24px;border:0.5px solid var(--border);background:var(--warm);}
     .booking-selection-strip .strip-item{flex:1;padding:12px 16px;border-right:0.5px solid var(--border);}
     .booking-selection-strip .strip-item:last-child{border-right:none;}
@@ -867,7 +889,7 @@
 
       btn.disabled = true;
       btn.classList.add('searching');
-      startHourglass();
+      startHourglass('hg-canvas');
 
       try {
         const res = await fetch('/.netlify/functions/repair-lookup', {
@@ -889,7 +911,7 @@
       } finally {
         btn.disabled = false;
         btn.classList.remove('searching');
-        stopHourglass();
+        stopHourglass('hg-canvas');
       }
     }
 
@@ -1247,8 +1269,39 @@
         draw();
         animId=requestAnimationFrame(tick);
       }
-      window.startHourglass=function(){reset();animId&&cancelAnimationFrame(animId);tick();};
-      window.stopHourglass=function(){animId&&cancelAnimationFrame(animId);ctx.clearRect(0,0,CW,CH);};
+      window.startHourglass=function(canvasId){
+        var c=document.getElementById(canvasId||'hg-canvas');
+        if(!c) return;
+        var cx=c.getContext('2d');
+        var CW=20,CH=28,MX=CW/2,T=2.2,N=CH/2,B=CH-2,NW=0.6,EW=8;
+        function lw(y){var t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX-(NW+t*(EW-NW));}
+        function rw(y){var t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX+(NW+t*(EW-NW));}
+        var topFill=0.6,botFill=0.0,drips=[],phase='drain',phaseTimer=0,drainTimer=0,animId;
+        var DR=24,DRIP_R=0.42,DPF=0.6/1440,DRIP_VY=0.058,DRIP_G=0.005;
+        function topSY(){return N-topFill*(N-T);}
+        function botSY(){return B-botFill*(B-N);}
+        function rst(){topFill=0.6;botFill=0.0;drips=[];phase='drain';phaseTimer=0;drainTimer=0;}
+        function draw(){
+          cx.clearRect(0,0,CW,CH);
+          cx.fillStyle='#D4BC8A';
+          cx.beginPath();cx.roundRect(0,0,CW,1.4,0.7);cx.fill();
+          cx.beginPath();cx.roundRect(0,CH-1.4,CW,1.4,0.7);cx.fill();
+          cx.strokeStyle='rgba(184,160,106,0.45)';cx.lineWidth=0.45;
+          cx.beginPath();cx.moveTo(lw(T),T);cx.lineTo(lw(N),N);cx.lineTo(lw(B),B);cx.stroke();
+          cx.beginPath();cx.moveTo(rw(T),T);cx.lineTo(rw(N),N);cx.lineTo(rw(B),B);cx.stroke();
+          if(topFill>0.001){var sy=topSY();cx.fillStyle='#B8A06A';cx.beginPath();cx.moveTo(lw(sy),sy);cx.lineTo(rw(sy),sy);for(var i=1;i<=20;i++){var y=sy+(N-sy)*i/20;cx.lineTo(rw(y),y);}cx.lineTo(rw(N),N);cx.lineTo(lw(N),N);for(var i=20;i>=1;i--){var y=sy+(N-sy)*i/20;cx.lineTo(lw(y),y);}cx.closePath();cx.fill();}
+          if(botFill>0.001){var py=botSY();cx.fillStyle='#B8A06A';cx.beginPath();cx.moveTo(lw(py),py);cx.lineTo(rw(py),py);for(var i=1;i<=20;i++){var y=py+(B-py)*i/20;cx.lineTo(rw(y),y);}cx.lineTo(rw(B),B);cx.lineTo(lw(B),B);for(var i=20;i>=1;i--){var y=py+(B-py)*i/20;cx.lineTo(lw(y),y);}cx.closePath();cx.fill();}
+          cx.fillStyle='rgba(212,188,138,0.9)';
+          drips.forEach(function(d){cx.beginPath();cx.arc(d.x,d.y,DRIP_R,0,Math.PI*2);cx.fill();});
+        }
+        function tick(){drainTimer++;if(phase==='drain'){if(topFill>0){topFill=Math.max(0,topFill-DPF);botFill=Math.min(1,botFill+DPF);}if(drainTimer>=DR&&topFill>0){drainTimer=0;for(var i=0;i<2;i++)drips.push({x:MX+(Math.random()-0.5)*0.5,y:N+0.4+i*1.2,vy:DRIP_VY+Math.random()*0.015});}drips.forEach(function(d){d.vy+=DRIP_G;d.y+=d.vy;});drips=drips.filter(function(d){return d.y<botSY()&&d.y<B;});if(topFill<=0&&drips.length===0){phase='pause';phaseTimer=0;}}else if(phase==='pause'){phaseTimer++;if(phaseTimer>120)rst();}draw();animId=requestAnimationFrame(tick);}
+        c._hgStop=function(){cancelAnimationFrame(animId);cx.clearRect(0,0,CW,CH);};
+        rst();tick();
+      };
+      window.stopHourglass=function(canvasId){
+        var c=document.getElementById(canvasId||'hg-canvas');
+        if(c&&c._hgStop) c._hgStop();
+      };
     })();
     // ── BOOKING SYSTEM ──
     var bkState = { step:1, date:null, time:null, calYear:null, calMonth:null };
@@ -1465,7 +1518,9 @@
 
     async function submitBooking(){
       var btn = document.getElementById('btn-confirm');
-      btn.disabled = true; btn.textContent = 'Confirming…';
+      btn.disabled = true;
+      btn.classList.add('searching');
+      if(window.startHourglass) startHourglass('bk-hg-canvas');
       var err = document.getElementById('confirm-error');
       err.classList.remove('visible');
       try {
@@ -1485,6 +1540,8 @@
         });
         var data = await res.json();
         if(!res.ok) throw new Error(data.error||'Failed');
+        btn.classList.remove('searching');
+        if(window.stopHourglass) stopHourglass('bk-hg-canvas');
         // Show success with details
         var sd = document.getElementById('bk-success-details');
         if(sd){
@@ -1496,8 +1553,10 @@
         }
         bkGoStep(5,4);
       } catch(e) {
+        btn.disabled = false;
+        btn.classList.remove('searching');
+        if(window.stopHourglass) stopHourglass('bk-hg-canvas');
         err.classList.add('visible');
-        btn.disabled = false; btn.textContent = 'Confirm Appointment';
       }
     }
   </script>
@@ -1600,7 +1659,7 @@
             <p class="booking-error" id="confirm-error">Something went wrong. Please try again.</p>
             <div class="booking-nav">
               <button class="booking-back" onclick="bkGoStep(4,3)">← Back</button>
-              <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()">Confirm Appointment</button>
+              <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()"><span class="btn-label">Confirm Appointment</span><canvas id="bk-hg-canvas" width="20" height="28"></canvas></button>
             </div>
           </div>
 

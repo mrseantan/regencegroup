@@ -230,7 +230,7 @@ exports.handler = async function(event) {
     const token = await getGoogleAccessToken();
     const row = [date, time, name, email, phone, purpose, watchModel || '', consent ? 'Yes' : 'No', 'Confirmed', bookingId];
     const sheetRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Appointments!A:J:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Appointments!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
       {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
