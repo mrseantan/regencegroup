@@ -633,7 +633,8 @@
       window._paymentSuccess       = hp.get('payment') === 'success';
       window._paymentSuccessJob    = hp.get('job')    || '';
       window._paymentSuccessAmount = hp.get('amount') || '';
-      if (window._paymentSuccess) window.location.hash = ''; // clean hash immediately
+      // DO NOT clear hash here — clearing it causes a re-run that resets _paymentSuccess to false
+      // Hash is cleared inside showPaymentSuccess() after display is complete
     })();
 
     // ── PAGE NAVIGATION ──
