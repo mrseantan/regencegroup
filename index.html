@@ -1098,6 +1098,66 @@
         }
       })();
     }
+
+    // ── HOURGLASS ANIMATION ──
+    (function(){
+      const C=document.getElementById('hg-canvas');
+      if(!C) return;
+      const ctx=C.getContext('2d');
+      const CW=20,CH=28,MX=CW/2;
+      const T=2.2,N=CH/2,B=CH-2,NW=0.6,EW=8;
+      function lw(y){const t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX-(NW+t*(EW-NW));}
+      function rw(y){const t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX+(NW+t*(EW-NW));}
+      let topFill,botFill,drips,phase,phaseTimer,drainTimer,animId;
+      const DRIP_EVERY=24,DRIP_R=0.42,DRAIN_PER_FRAME=0.6/1440,DRIP_VY=0.058,DRIP_G=0.005;
+      function topSY(){return N-topFill*(N-T);}
+      function botSY(){return B-botFill*(B-N);}
+      function reset(){topFill=0.6;botFill=0.0;drips=[];phase='drain';phaseTimer=0;drainTimer=0;}
+      function draw(){
+        ctx.clearRect(0,0,CW,CH);
+        ctx.fillStyle='#D4BC8A';
+        ctx.beginPath();ctx.roundRect(0,0,CW,1.4,0.7);ctx.fill();
+        ctx.beginPath();ctx.roundRect(0,CH-1.4,CW,1.4,0.7);ctx.fill();
+        ctx.strokeStyle='rgba(184,160,106,0.45)';ctx.lineWidth=0.45;
+        ctx.beginPath();ctx.moveTo(lw(T),T);ctx.lineTo(lw(N),N);ctx.lineTo(lw(B),B);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(rw(T),T);ctx.lineTo(rw(N),N);ctx.lineTo(rw(B),B);ctx.stroke();
+        if(topFill>0.001){
+          const sy=topSY();ctx.fillStyle='#B8A06A';ctx.beginPath();
+          ctx.moveTo(lw(sy),sy);ctx.lineTo(rw(sy),sy);
+          for(let i=1;i<=20;i++){const y=sy+(N-sy)*i/20;ctx.lineTo(rw(y),y);}
+          ctx.lineTo(rw(N),N);ctx.lineTo(lw(N),N);
+          for(let i=20;i>=1;i--){const y=sy+(N-sy)*i/20;ctx.lineTo(lw(y),y);}
+          ctx.closePath();ctx.fill();
+        }
+        if(botFill>0.001){
+          const py=botSY();ctx.fillStyle='#B8A06A';ctx.beginPath();
+          ctx.moveTo(lw(py),py);ctx.lineTo(rw(py),py);
+          for(let i=1;i<=20;i++){const y=py+(B-py)*i/20;ctx.lineTo(rw(y),y);}
+          ctx.lineTo(rw(B),B);ctx.lineTo(lw(B),B);
+          for(let i=20;i>=1;i--){const y=py+(B-py)*i/20;ctx.lineTo(lw(y),y);}
+          ctx.closePath();ctx.fill();
+        }
+        ctx.fillStyle='rgba(212,188,138,0.9)';
+        drips.forEach(d=>{ctx.beginPath();ctx.arc(d.x,d.y,DRIP_R,0,Math.PI*2);ctx.fill();});
+      }
+      function tick(){
+        drainTimer++;
+        if(phase==='drain'){
+          if(topFill>0){topFill=Math.max(0,topFill-DRAIN_PER_FRAME);botFill=Math.min(1,botFill+DRAIN_PER_FRAME);}
+          if(drainTimer>=DRIP_EVERY&&topFill>0){
+            drainTimer=0;
+            for(let i=0;i<2;i++) drips.push({x:MX+(Math.random()-0.5)*0.5,y:N+0.4+i*1.2,vy:DRIP_VY+Math.random()*0.015});
+          }
+          drips.forEach(d=>{d.vy+=DRIP_G;d.y+=d.vy;});
+          drips=drips.filter(d=>d.y<botSY()&&d.y<B);
+          if(topFill<=0&&drips.length===0){phase='pause';phaseTimer=0;}
+        }else if(phase==='pause'){phaseTimer++;if(phaseTimer>120)reset();}
+        draw();
+        animId=requestAnimationFrame(tick);
+      }
+      window.startHourglass=function(){reset();animId&&cancelAnimationFrame(animId);tick();};
+      window.stopHourglass=function(){animId&&cancelAnimationFrame(animId);ctx.clearRect(0,0,CW,CH);};
+    })();
   </script>
 
   <!-- decline confirm modal — at body level so fixed positioning works correctly -->
