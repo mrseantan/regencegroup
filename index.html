@@ -628,17 +628,18 @@
   <script>
     // ── PAGE NAVIGATION ──
     // Auto-populate job number from email link e.g. ?job=TS-2025-0142
+    // Do NOT fire if this is a payment success redirect
     (function(){
       const params = new URLSearchParams(window.location.search);
       const jobParam = params.get('job');
-      if (jobParam) {
+      const isPaymentSuccess = params.get('payment') === 'success';
+      if (jobParam && !isPaymentSuccess) {
         showPage('services');
         setTimeout(() => {
           const jobInput = document.getElementById('t-job');
           if (jobInput) {
             jobInput.value = decodeURIComponent(jobParam);
             jobInput.focus();
-            // scroll to tracker
             const tracker = document.querySelector('.tracker-section');
             if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
           }
