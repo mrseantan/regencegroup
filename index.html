@@ -653,28 +653,33 @@
       if (params.get('payment') === 'success') {
         const job    = params.get('job')    || '';
         const amount = params.get('amount') || '';
-        window.history.replaceState({}, '', window.location.pathname);
-        // navigate to services page and show success box
+        // navigate to services page first
         showPage('services');
+        // wait for page to render then show success
         setTimeout(() => {
-          const qBox = document.getElementById('r-quotation-box');
-          const successBox = document.getElementById('r-success-box');
-          const paymentBox = document.getElementById('payment-box-inner');
-          if (qBox) qBox.style.display = 'block';
-          if (paymentBox) paymentBox.style.display = 'none';
-          if (successBox) {
+          // clean URL after reading params
+          window.history.replaceState({}, '', window.location.pathname);
+          const qBox      = document.getElementById('r-quotation-box');
+          const successBox= document.getElementById('r-success-box');
+          const paymentBox= document.getElementById('payment-box-inner');
+          const declinedBox=document.getElementById('declined-box');
+          if (qBox)        { qBox.style.display        = 'block'; }
+          if (paymentBox)  { paymentBox.style.display  = 'none';  }
+          if (declinedBox) { declinedBox.style.display = 'none';  }
+          if (successBox)  {
             successBox.style.display = 'block';
             const sJob = document.getElementById('s-job');
             const sAmt = document.getElementById('s-amount');
             const sRef = document.getElementById('s-ref');
             if (sJob) sJob.textContent = job;
-            if (sAmt) sAmt.textContent = 'SGD ' + amount;
+            if (sAmt) sAmt.textContent = 'SGD ' + parseFloat(amount).toFixed(2);
             if (sRef) sRef.textContent = job;
           }
-          // scroll to tracker
-          const tracker = document.querySelector('.tracker-section');
-          if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+          // scroll to success box
+          setTimeout(() => {
+            if (successBox) successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 200);
+        }, 300);
       }
     })();
 
