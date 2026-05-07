@@ -982,15 +982,9 @@
       }
     })();
 
-    // Fire payment success after DOM fully loaded
+    // Fire payment success — called at end of script, DOM is fully parsed at this point
     if (window._paymentSuccess) {
-      if (document.readyState === 'complete') {
-        setTimeout(showPaymentSuccess, 500);
-      } else {
-        window.addEventListener('load', function() {
-          setTimeout(showPaymentSuccess, 500);
-        });
-      }
+      showPaymentSuccess();
     }
   </script>
 
