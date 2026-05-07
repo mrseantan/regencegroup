@@ -626,10 +626,15 @@
   </div>
 
   <script>
-    // ── READ URL PARAMS IMMEDIATELY — must be first ──
-    window._paymentSuccess       = new URLSearchParams(window.location.search).get('payment') === 'success';
-    window._paymentSuccessJob    = new URLSearchParams(window.location.search).get('job')    || '';
-    window._paymentSuccessAmount = new URLSearchParams(window.location.search).get('amount') || '';
+    // ── READ PAYMENT RESULT FROM HASH — hashes are never stripped by redirects ──
+    (function(){
+      const hash = window.location.hash.replace('#','');
+      const hp = new URLSearchParams(hash);
+      window._paymentSuccess       = hp.get('payment') === 'success';
+      window._paymentSuccessJob    = hp.get('job')    || '';
+      window._paymentSuccessAmount = hp.get('amount') || '';
+      if (window._paymentSuccess) window.location.hash = ''; // clean hash immediately
+    })();
 
     // ── PAGE NAVIGATION ──
 
@@ -935,12 +940,12 @@
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') checkRepair(); });
     });
 
-    // Auto-populate job number from email link — must be after showPage is defined
+    // Auto-populate job number from email link — reads from ?job= query param
+    // (email links use ?job= which may get stripped, but hash fallback also supported)
     (function(){
-      const jobParam = window._paymentSuccessJob && !window._paymentSuccess
-        ? null  // don't use job param if this is a payment success
-        : null;
-      const rawJob = new URLSearchParams(window.location.search).get('job');
+      const qJob = new URLSearchParams(window.location.search).get('job');
+      const hJob = (function(){ const h = window.location.hash.replace('#',''); return new URLSearchParams(h).get('job'); })();
+      const rawJob = qJob || hJob;
       if (rawJob && !window._paymentSuccess) {
         showPage('services');
         setTimeout(() => {
@@ -952,6 +957,7 @@
             if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
           }
           window.history.replaceState({}, '', window.location.pathname);
+          window.location.hash = '';
         }, 150);
       }
     })();
