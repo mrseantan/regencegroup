@@ -670,9 +670,15 @@
         const paymentBox = document.getElementById('payment-box-inner');
         const declinedBox= document.getElementById('declined-box');
 
-        // also show the tracker result container which is hidden by default
+        // show tracker result container but hide the header fields
         const resultEl = document.getElementById('t-result');
         if (resultEl) resultEl.classList.add('visible');
+        const resultHeader = resultEl ? resultEl.querySelector('.result-header') : null;
+        const progressWrap = resultEl ? resultEl.querySelector('.progress-wrap') : null;
+        const statusDetail = resultEl ? resultEl.querySelector('.status-detail') : null;
+        if (resultHeader) resultHeader.style.display = 'none';
+        if (progressWrap) progressWrap.style.display = 'none';
+        if (statusDetail) statusDetail.style.display = 'none';
         if (qBox)        qBox.setAttribute('style', 'display:block !important');
         if (paymentBox)  paymentBox.setAttribute('style', 'display:none !important');
         if (declinedBox) declinedBox.setAttribute('style', 'display:none !important');
