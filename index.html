@@ -713,8 +713,6 @@
       window.scrollTo(0, 0);
     }
 
-    // Fire payment success after all functions are defined
-    showPaymentSuccess();
 
     // ── CONTACT FORM (Netlify) ──
     const contactForm = document.getElementById('contact-form');
@@ -953,7 +951,9 @@
       const el = document.getElementById(id);
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') checkRepair(); });
     });
-  
+
+    // Fire payment success — called last so all DOM and functions are ready
+    showPaymentSuccess();
   </script>
 
   <!-- decline confirm modal — at body level so fixed positioning works correctly -->
