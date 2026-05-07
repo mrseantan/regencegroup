@@ -112,16 +112,22 @@
       font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.15em;
       text-transform: uppercase; cursor: pointer; border: none;
       transition: background 0.2s; white-space: nowrap;
+      position: relative; display: inline-flex; align-items: center; justify-content: center;
     }
     .tracker-btn:hover { background: var(--gold-dark); }
     .tracker-btn:disabled { background: var(--muted); cursor: not-allowed; }
+    .tracker-btn .btn-label { display: inline-block; }
+    .tracker-btn.searching .btn-label { opacity: 0; position: absolute; pointer-events: none; }
+    .tracker-btn #hg-canvas { display: none; position: absolute; }
+    .tracker-btn.searching #hg-canvas { display: block; }
     .tracker-row { display: flex; gap: 0; }
     .tracker-error { font-size: 13px; color: var(--red); margin-top: 12px; text-align: center; display: none; }
     .tracker-error.visible { display: block; }
 
     /* Result card */
-    .tracker-result { margin-top: 32px; background: var(--white); border: 0.5px solid var(--border); display: none; }
+    .tracker-result { margin-top: 32px; background: var(--white); border: 0.5px solid var(--border); display: none; overflow: hidden; }
     .tracker-result.visible { display: block; }
+    .tracker-result-bar { height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold)); }
     .result-header { padding: 24px 32px; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
     .result-field { }
     .result-field-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
@@ -129,30 +135,40 @@
     .warranty-badge { display: inline-block; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 12px; background: var(--warm-mid); color: var(--green); border: 0.5px solid rgba(45,106,79,0.3); margin-top: 8px; }
 
     /* Progress bar */
-    .progress-wrap { padding: 32px; border-bottom: 0.5px solid var(--border); }
-    .progress-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+    .progress-wrap { padding: 28px 32px; border-bottom: 0.5px solid var(--border); }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .progress-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+    .warranty-badge-progress { display: inline-block; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 12px; background: var(--warm-mid); color: var(--green); border: 0.5px solid rgba(45,106,79,0.3); }
     .progress-steps { display: flex; align-items: flex-start; position: relative; }
     .progress-steps::before { content: ''; position: absolute; top: 12px; left: 12px; right: 12px; height: 2px; background: var(--border); z-index: 0; }
     .progress-track { position: absolute; top: 12px; left: 12px; height: 2px; background: var(--gold); z-index: 1; transition: width 0.6s ease; }
     .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
     .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--warm-mid); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--muted); transition: all 0.3s; margin-bottom: 8px; }
     .step-dot.done { background: var(--gold); border-color: var(--gold); color: var(--white); }
-    .step-dot.current { background: var(--ink); border-color: var(--ink); color: var(--white); }
+    .step-dot.current { width: 27px; height: 27px; background: var(--ink); border-color: var(--ink); color: var(--white); }
     .step-dot.rejected { background: var(--red); border-color: var(--red); color: var(--white); }
     .step-label { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.4; max-width: 64px; }
     .step-label.done { color: var(--gold-dark); }
     .step-label.current { color: var(--ink); font-weight: 500; }
 
     /* Status detail */
-    .status-detail { padding: 24px 32px; }
-    .status-text { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--ink); margin-bottom: 8px; }
-    .status-sub { font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .status-detail { padding: 28px 32px; }
+    .status-eyebrow { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    .status-eyebrow.red { color: var(--red); opacity: 0.8; }
+    .status-text { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--ink); margin-bottom: 10px; line-height: 1.2; }
+    .status-sub { font-size: 13px; color: var(--muted); line-height: 1.85; }
+    .status-rule { width: 32px; height: 1px; background: var(--border-strong); margin: 16px 0; }
+    .status-rule.red { background: rgba(123,45,45,0.25); }
+    .status-notify { font-size: 12px; color: var(--muted); line-height: 1.85; padding: 14px 18px; background: var(--warm); border-left: 2px solid var(--gold); }
+    .status-notify.red { background: rgba(123,45,45,0.04); border-left-color: rgba(123,45,45,0.3); }
     .quotation-box { margin-top: 16px; padding: 20px 24px; background: var(--warm); border: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
     .quotation-amount { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--ink); }
     .quotation-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-    .collection-box { margin-top: 16px; padding: 16px 20px; background: var(--warm); border: 0.5px solid var(--border); display: flex; gap: 16px; align-items: center; }
-    .collection-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
-    .collection-date { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--ink); }
+    .collection-box { margin-top: 16px; padding: 20px 24px; background: var(--warm); border: 0.5px solid var(--border); }
+    .collection-label { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .collection-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--ink); margin-bottom: 6px; }
+    .collection-address { font-size: 13px; color: var(--muted); line-height: 1.8; }
+    .collection-hours { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; margin-top: 8px; }
 
     /* About / Contact */
     .about-hero { background: var(--warm); padding: 120px 48px 96px; text-align: center; }
@@ -417,11 +433,12 @@
         <div class="tracker-row">
           <input class="tracker-input" id="t-job" placeholder="Repair Job No." style="flex: 1.4;" />
           <input class="tracker-input" id="t-mobile" placeholder="Last 4 digits of mobile" maxlength="4" inputmode="numeric" style="flex: 1; border-left: none;" />
-          <button class="tracker-btn" id="t-btn" onclick="checkRepair()">Track</button>
+          <button class="tracker-btn" id="t-btn" onclick="checkRepair()"><span class="btn-label">Track</span><canvas id="hg-canvas" width="20" height="28"></canvas></button>
         </div>
         <div class="tracker-error" id="t-error"></div>
 
         <div class="tracker-result" id="t-result">
+          <div class="tracker-result-bar"></div>
           <div class="result-header">
             <div class="result-field">
               <div class="result-field-label">Repair Job No.</div>
@@ -439,15 +456,21 @@
           </div>
 
           <div class="progress-wrap">
-            <div class="progress-label">Repair Progress</div>
+            <div class="progress-header">
+              <div class="progress-label">Repair Progress</div>
+              <span id="r-warranty-progress"></span>
+            </div>
             <div class="progress-steps" id="p-steps">
               <div class="progress-track" id="p-track"></div>
             </div>
           </div>
 
           <div class="status-detail">
+            <div class="status-eyebrow" id="r-status-eyebrow">Current Status</div>
             <div class="status-text" id="r-status-text">—</div>
             <div class="status-sub" id="r-status-sub"></div>
+            <div class="status-rule" id="r-status-rule" style="display:none;"></div>
+            <div class="status-notify" id="r-status-notify" style="display:none;"></div>
             <div id="r-quotation-box" style="display:none;">
               <div class="payment-box" id="payment-box-inner">
                 <div class="payment-header">
@@ -521,10 +544,10 @@
 
             <div id="r-collection-box" style="display:none;">
               <div class="collection-box">
-                <div>
-                  <div class="collection-label">Available for Collection</div>
-                  <div class="collection-date" id="r-collection">—</div>
-                </div>
+                <div class="collection-label">Collection Address</div>
+                <div class="collection-name">Tissot Boutique</div>
+                <div class="collection-address">10 Paya Lebar Road<br>#01-27 PLQ Mall<br>Singapore 409057</div>
+                <div class="collection-hours">Daily · 11:00am – 9:30pm</div>
               </div>
             </div>
           </div>
@@ -734,15 +757,15 @@
     ];
 
     const STATUS_MAP = {
-      'job accepted, pending watchmaker assessment': { step: 0, label: 'Job accepted, pending watchmaker assessment', sub: 'Your timepiece has been received. Our watchmaker will assess it shortly.' },
-      'no intervention required':                   { step: 1, label: 'No intervention required', sub: 'Our watchmaker has assessed your timepiece and no repair is needed.' },
-      'repair processed under warranty; no payment required': { step: 2, label: 'Repair processed under warranty', sub: 'Your repair is covered under warranty. No payment is required.', warranty: true },
-      'repair processed under warranty':            { step: 2, label: 'Repair processed under warranty', sub: 'Your repair is covered under warranty. No payment is required.', warranty: true },
-      'quotation; pending payment':                 { step: 1, label: 'Quotation — pending payment', sub: 'A quotation has been prepared. Please review the amount below and contact us to proceed.', showQuote: true },
-      'quotation accepted; repair begun':           { step: 2, label: 'Quotation accepted — repair begun', sub: 'Payment confirmed. Our watchmaker has begun the repair.' },
-      'quotation rejected; return without repair':  { step: 1, label: 'Quotation rejected — return without repair', sub: 'You have declined the quotation. Your timepiece is being prepared for return.', rejected: true },
-      'ready for collection':                       { step: 3, label: 'Ready for collection', sub: 'Your timepiece is ready. Please bring your job number and ID when collecting.', collection: true },
-      'collected':                                  { step: 4, label: 'Collected', sub: 'Your timepiece has been collected. Thank you for choosing Regence Group.', collected: true }
+      'job accepted, pending watchmaker assessment': { step: 0, label: 'Your timepiece is in our care.', sub: 'Our watchmaker will assess your timepiece shortly and determine the best course of action.', notify: 'You will be notified by email as your repair progresses. Please retain your job reference number for any enquiries.' },
+      'no intervention required':                   { step: 1, label: 'No intervention required', sub: 'Our watchmaker has assessed your timepiece and determined that no repair is necessary. It will be prepared for return shortly.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.' },
+      'repair processed under warranty; no payment required': { step: 2, label: 'Repair processed under warranty', sub: 'Your timepiece is in our watchmaker's hands. As this repair is covered under warranty, no payment will be required.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', warranty: true },
+      'repair processed under warranty':            { step: 2, label: 'Repair processed under warranty', sub: 'Your timepiece is in our watchmaker's hands. As this repair is covered under warranty, no payment will be required.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', warranty: true },
+      'quotation; pending payment':                 { step: 1, label: 'Quotation — pending payment', sub: 'Please review the quotation below and proceed with payment to authorise the repair.', showQuote: true },
+      'quotation accepted; repair begun':           { step: 2, label: 'Quotation accepted — repair begun', sub: 'The repair has commenced. Your timepiece is in expert hands.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.' },
+      'quotation rejected; return without repair':  { step: 1, label: 'Your timepiece is being prepared for return.', sub: 'We note your decision. Your timepiece will be returned to you without intervention.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', rejected: true },
+      'ready for collection':                       { step: 3, label: 'Your timepiece awaits you.', sub: 'The repair is complete and your timepiece has been prepared for return. We look forward to placing it back in your hands.', collection: true },
+      'collected':                                  { step: 4, label: 'Your timepiece has been returned to you.', sub: 'We are glad to have been of service. We hope your timepiece continues to serve you well.', notify: 'Thank you for entrusting your timepiece to Regence Group. We look forward to welcoming you again.', collected: true }
     };
 
     async function checkRepair() {
@@ -760,7 +783,8 @@
       if (!/^\d{4}$/.test(mobileVal)) { showError('Please enter exactly 4 digits of your mobile number.'); return; }
 
       btn.disabled = true;
-      btn.textContent = 'Searching...';
+      btn.classList.add('searching');
+      startHourglass();
 
       try {
         const res = await fetch('/.netlify/functions/repair-lookup', {
@@ -781,7 +805,8 @@
         showError('Connection error. Please try again.');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Track';
+        btn.classList.remove('searching');
+        stopHourglass();
       }
     }
 
@@ -794,11 +819,24 @@
     function renderResult(d) {
       document.getElementById('r-job').textContent  = d.jobNumber || '—';
       document.getElementById('r-name').textContent = d.customerName || '—';
-      document.getElementById('r-date').textContent = d.date || '—';
 
-      // Warranty badge
+      // Format date as DD MMM YYYY
+      const rawDate = d.date || '';
+      let fmtDate = rawDate;
+      try {
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const parts = rawDate.split('/');
+        if (parts.length === 2) {
+          fmtDate = String(parts[0]).padStart(2,'0') + ' ' + months[parseInt(parts[1])-1] + ' ' + new Date().getFullYear();
+        } else if (parts.length === 3) {
+          fmtDate = String(parts[0]).padStart(2,'0') + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[2];
+        }
+      } catch(e) {}
+      document.getElementById('r-date').textContent = fmtDate;
+
+      // Warranty badge — moved to progress section
       const wEl = document.getElementById('r-warranty');
-      wEl.innerHTML = d.warranty ? '<span class="warranty-badge">✓ Warranty</span>' : '';
+      if (wEl) wEl.innerHTML = '';
 
       // Status lookup
       const rawStatus = (d.status || '').trim().toLowerCase();
@@ -814,8 +852,43 @@
       if (st) st.style.display = '';
       if (ss) ss.style.display = '';
 
+      // Status eyebrow
+      const eyebrowEl = document.getElementById('r-status-eyebrow');
+      if (eyebrowEl) {
+        if (sInfo.rejected) {
+          eyebrowEl.textContent = 'Quotation Declined';
+          eyebrowEl.className = 'status-eyebrow red';
+        } else {
+          eyebrowEl.textContent = 'Current Status';
+          eyebrowEl.className = 'status-eyebrow';
+        }
+      }
+
       document.getElementById('r-status-text').textContent = sInfo.label;
       document.getElementById('r-status-sub').textContent  = sInfo.sub;
+
+      // Notify strip
+      const ruleEl  = document.getElementById('r-status-rule');
+      const notifyEl= document.getElementById('r-status-notify');
+      if (sInfo.notify) {
+        notifyEl.textContent = sInfo.notify;
+        notifyEl.style.display = 'block';
+        ruleEl.style.display = 'block';
+        if (sInfo.rejected) {
+          notifyEl.className = 'status-notify red';
+          ruleEl.className = 'status-rule red';
+        } else {
+          notifyEl.className = 'status-notify';
+          ruleEl.className = 'status-rule';
+        }
+      } else {
+        notifyEl.style.display = 'none';
+        ruleEl.style.display = 'none';
+      }
+
+      // Warranty badge in progress section
+      const wpEl = document.getElementById('r-warranty-progress');
+      if (wpEl) wpEl.innerHTML = sInfo.warranty ? '<span class="warranty-badge-progress">✓ Warranty</span>' : '';
 
       // Quotation + payment box
       const qBox = document.getElementById('r-quotation-box');
@@ -852,10 +925,9 @@
         qBox.style.display = 'none';
       }
 
-      // Collection box
+      // Collection box — show for ready status
       const cBox = document.getElementById('r-collection-box');
-      if (sInfo.collection && d.collectionDate) {
-        document.getElementById('r-collection').textContent = d.collectionDate;
+      if (sInfo.collection) {
         cBox.style.display = 'block';
       } else {
         cBox.style.display = 'none';
