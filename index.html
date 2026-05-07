@@ -627,6 +627,26 @@
 
   <script>
     // ── PAGE NAVIGATION ──
+    // Auto-populate job number from email link e.g. ?job=TS-2025-0142
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      const jobParam = params.get('job');
+      if (jobParam) {
+        showPage('services');
+        setTimeout(() => {
+          const jobInput = document.getElementById('t-job');
+          if (jobInput) {
+            jobInput.value = decodeURIComponent(jobParam);
+            jobInput.focus();
+            // scroll to tracker
+            const tracker = document.querySelector('.tracker-section');
+            if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
+          }
+          window.history.replaceState({}, '', window.location.pathname);
+        }, 150);
+      }
+    })();
+
     // Handle Stripe redirect back after payment
     (function(){
       const params = new URLSearchParams(window.location.search);
