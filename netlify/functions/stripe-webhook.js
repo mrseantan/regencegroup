@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { notifyTeam, msgTeamPaymentMade } = require('./whatsapp');
 
 function verifyStripeSignature(payload, sigHeader, secret) {
   const parts     = sigHeader.split(',');
@@ -140,6 +141,12 @@ exports.handler = async function(event) {
 
   try { await sendEmail(`Payment Received — Job ${jobNum} (${brand})`, html, recipients); }
   catch (e) { console.error('Email error:', e); }
+
+  try {
+    await notifyTeam(msgTeamPaymentMade({
+      jobNumber: jobNum, savNumber: savRepairNo, customerName: custName, brand, amount
+    }));
+  } catch (e) { console.error('WhatsApp error:', e); }
 
   return { statusCode: 200, body: JSON.stringify({ received: true }) };
 };

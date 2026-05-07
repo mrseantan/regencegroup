@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { notifyTeam, msgTeamPaymentDeclined } = require('./whatsapp');
 
 async function getGoogleAccessToken() {
   const email      = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -139,6 +140,12 @@ exports.handler = async function(event) {
 
   try { await sendEmail(`Quotation Declined — Job ${jobNumber} (${brand || 'Unknown'})`, html, recipients); }
   catch (e) { console.error('Email error:', e); }
+
+  try {
+    await notifyTeam(msgTeamPaymentDeclined({
+      jobNumber, savNumber: savRepairNo, customerName, brand
+    }));
+  } catch (e) { console.error('WhatsApp error:', e); }
 
   return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ success: true }) };
 };
