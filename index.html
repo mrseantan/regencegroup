@@ -332,9 +332,10 @@
     .booking-input:focus{border-color:var(--gold);}
     .booking-input::placeholder{color:var(--muted);opacity:0.6;}
     .booking-textarea{resize:vertical;min-height:80px;}
-    .booking-panels-wrap{position:relative;overflow:hidden;}
-    .booking-panel{position:absolute;top:0;left:0;width:100%;opacity:0;transform:translateX(32px);pointer-events:none;}
-    .booking-panel.active{position:relative;opacity:1;transform:translateX(0);pointer-events:auto;}
+    .booking-panels-wrap{position:relative;}
+    .booking-panel{display:none;}
+    .booking-panel.active{display:block;}
+    .booking-panel.animating-out{display:block;position:absolute;top:0;left:0;width:100%;pointer-events:none;}
     .booking-selection-strip{display:flex;gap:0;margin-bottom:24px;border:0.5px solid var(--border);background:var(--warm);}
     .booking-selection-strip .strip-item{flex:1;padding:12px 16px;border-right:0.5px solid var(--border);}
     .booking-selection-strip .strip-item:last-child{border-right:none;}
@@ -1262,11 +1263,10 @@
       bkState.date = null; bkState.time = null; bkState.step = 1;
       // Reset all panels
       document.querySelectorAll('.booking-panel').forEach(function(p){
-        p.style.cssText = ''; p.classList.remove('active');
+        p.classList.remove('active');
+        p.style.cssText = '';
       });
       document.getElementById('panel-1').classList.add('active');
-      document.getElementById('panel-1').style.opacity = '1';
-      document.getElementById('panel-1').style.transform = 'translateX(0)';
       ['tab-1','tab-2','tab-3','tab-4'].forEach(function(id,i){
         var t = document.getElementById(id);
         t.classList.remove('active','done');
@@ -1292,32 +1292,28 @@
       var forward = to > bkState.step;
       bkState.step = to;
 
-      // Exit current panel
-      fromEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
-      fromEl.style.opacity    = '0';
-      fromEl.style.transform  = forward ? 'translateX(-28px)' : 'translateX(28px)';
-      fromEl.style.position   = 'absolute';
-      fromEl.style.pointerEvents = 'none';
-
-      // Prepare incoming panel
-      toEl.style.transition  = 'none';
-      toEl.style.opacity     = '0';
-      toEl.style.transform   = forward ? 'translateX(28px)' : 'translateX(-28px)';
-      toEl.style.position    = 'relative';
-      toEl.style.pointerEvents = 'auto';
-
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          toEl.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-          toEl.style.opacity    = '1';
-          toEl.style.transform  = 'translateX(0)';
-        });
-      });
+      // Fade out current
+      fromEl.style.transition = 'opacity 0.2s ease';
+      fromEl.style.opacity = '0';
 
       setTimeout(function(){
-        fromEl.style.position    = 'absolute';
-        fromEl.style.pointerEvents = 'none';
-      }, 300);
+        fromEl.classList.remove('active');
+        fromEl.style.cssText = '';
+
+        // Prepare incoming — slide in from direction
+        toEl.style.transition = 'none';
+        toEl.style.opacity = '0';
+        toEl.style.transform = forward ? 'translateX(20px)' : 'translateX(-20px)';
+        toEl.classList.add('active');
+
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            toEl.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toEl.style.opacity = '1';
+            toEl.style.transform = 'translateX(0)';
+          });
+        });
+      }, 200);
 
       // Update step tabs
       ['tab-1','tab-2','tab-3','tab-4'].forEach(function(id,i){
