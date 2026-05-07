@@ -292,6 +292,64 @@
     .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
     .footer-logo span { color: var(--gold); }
     .footer-text { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; }
+    /* ── BOOKING OVERLAY ── */
+    .booking-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,24,20,0.7);display:none;align-items:center;justify-content:center;padding:24px;}
+    .booking-overlay.open{display:flex;}
+    .booking-modal{background:var(--white);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative;}
+    .booking-top-bar{height:2px;background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));}
+    .booking-header{padding:32px 40px 0;display:flex;justify-content:space-between;align-items:flex-start;}
+    .booking-eyebrow{font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+    .booking-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--ink);line-height:1.2;}
+    .booking-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);padding:4px;line-height:1;margin-left:16px;flex-shrink:0;}
+    .booking-close:hover{color:var(--ink);}
+    .booking-body{padding:24px 40px 40px;}
+    .booking-steps{display:flex;gap:0;margin-bottom:32px;border-bottom:0.5px solid var(--border);}
+    .booking-step-tab{flex:1;padding:12px 8px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);text-align:center;border-bottom:2px solid transparent;margin-bottom:-0.5px;}
+    .booking-step-tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+    .booking-step-tab.done{color:var(--gold-dark);}
+    .booking-panel{display:none;}
+    .booking-panel.active{display:block;}
+    .booking-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:24px;}
+    .cal-header{grid-column:span 7;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+    .cal-month{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);}
+    .cal-nav{background:none;border:0.5px solid var(--border);color:var(--muted);cursor:pointer;padding:6px 12px;font-size:12px;transition:all 0.2s;}
+    .cal-nav:hover{border-color:var(--gold);color:var(--ink);}
+    .cal-day-label{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0;}
+    .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink);cursor:pointer;border:0.5px solid transparent;transition:all 0.15s;font-family:'Jost',sans-serif;font-weight:300;}
+    .cal-day:hover:not(.disabled):not(.empty){border-color:var(--gold);color:var(--ink);}
+    .cal-day.selected{background:var(--ink);color:var(--white);border-color:var(--ink);}
+    .cal-day.disabled{color:var(--muted);opacity:0.35;cursor:not-allowed;}
+    .cal-day.empty{cursor:default;}
+    .cal-day.today{border-color:rgba(184,160,106,0.4);}
+    .slots-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px;}
+    .slot-pill{padding:10px 4px;text-align:center;font-size:12px;letter-spacing:0.05em;color:var(--ink);border:0.5px solid var(--border);cursor:pointer;transition:all 0.15s;font-family:'Jost',sans-serif;}
+    .slot-pill:hover:not(.taken){border-color:var(--gold);color:var(--ink);}
+    .slot-pill.selected{background:var(--ink);color:var(--white);border-color:var(--ink);}
+    .slot-pill.taken{color:var(--muted);opacity:0.4;cursor:not-allowed;text-decoration:line-through;}
+    .booking-field{margin-bottom:20px;}
+    .booking-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;}
+    .booking-input{width:100%;padding:12px 16px;border:0.5px solid var(--border-strong);background:var(--warm);font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color 0.2s;}
+    .booking-input:focus{border-color:var(--gold);}
+    .booking-input::placeholder{color:var(--muted);opacity:0.6;}
+    .booking-textarea{resize:vertical;min-height:80px;}
+    .booking-consent{display:flex;gap:12px;align-items:flex-start;margin-bottom:24px;}
+    .booking-consent input{margin-top:3px;flex-shrink:0;accent-color:var(--ink);}
+    .booking-consent label{font-size:12px;color:var(--muted);line-height:1.7;}
+    .booking-consent label a{color:var(--gold-dark);}
+    .booking-summary{background:var(--warm);padding:20px 24px;margin-bottom:24px;border:0.5px solid var(--border);}
+    .booking-summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);}
+    .booking-summary-row:last-child{border-bottom:none;}
+    .booking-summary-label{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
+    .booking-summary-value{font-size:13px;color:var(--ink);text-align:right;}
+    .booking-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+    .booking-back{background:none;border:none;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:0;}
+    .booking-back:hover{color:var(--ink);}
+    .booking-success{text-align:center;padding:40px 0;}
+    .booking-success-icon{width:48px;height:1px;background:var(--gold);margin:0 auto 24px;}
+    .booking-success-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);margin-bottom:12px;}
+    .booking-success-sub{font-size:13px;color:var(--muted);line-height:1.85;max-width:360px;margin:0 auto 24px;}
+    .booking-error{font-size:12px;color:var(--red);margin-top:8px;display:none;}
+    .booking-error.visible{display:block;}
   </style>
 </head>
 <body>
@@ -401,6 +459,9 @@
             <div class="meta-item"><p class="meta-label">Location</p><p class="meta-value">Singapore</p></div>
             <div class="meta-item"><p class="meta-label">Format</p><p class="meta-value">Monobrand Boutique</p></div>
             <div class="meta-item"><p class="meta-label">Opening Hours</p><p class="meta-value">Daily, 11am – 9:30pm</p></div>
+          </div>
+          <div style="margin-top:32px;">
+            <button class="btn btn-primary" onclick="openBooking()">Book an Appointment</button>
           </div>
         </div>
         <div class="boutique-photo">
@@ -1177,6 +1238,215 @@
       window.startHourglass=function(){reset();animId&&cancelAnimationFrame(animId);tick();};
       window.stopHourglass=function(){animId&&cancelAnimationFrame(animId);ctx.clearRect(0,0,CW,CH);};
     })();
+    // ── BOOKING SYSTEM ──
+    var bkState = { step:1, date:null, time:null, calYear:null, calMonth:null, slots:[] };
+
+    function openBooking(){
+      const now = new Date();
+      bkState.calYear  = now.getFullYear();
+      bkState.calMonth = now.getMonth();
+      bkState.date = null; bkState.time = null; bkState.step = 1;
+      goToStep(1);
+      renderCalendar();
+      document.getElementById('booking-overlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBooking(){
+      document.getElementById('booking-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleOverlayClick(e){
+      if(e.target === document.getElementById('booking-overlay')) closeBooking();
+    }
+
+    function goToStep(n){
+      if(n===3){
+        const err = document.getElementById('details-error');
+        err.classList.remove('visible');
+      }
+      bkState.step = n;
+      document.querySelectorAll('.booking-panel').forEach(p=>p.classList.remove('active'));
+      document.querySelectorAll('.booking-step-tab').forEach((t,i)=>{
+        t.classList.remove('active','done');
+        if(i+1 < n) t.classList.add('done');
+        if(i+1 === n) t.classList.add('active');
+      });
+      const panel = document.getElementById(n === 5 ? 'panel-success' : `panel-${n}`);
+      if(panel) panel.classList.add('active');
+      if(n===2 && bkState.date) loadSlots(bkState.date);
+      if(n===4) renderSummary();
+    }
+
+    function renderCalendar(){
+      const cal  = document.getElementById('booking-calendar');
+      const year = bkState.calYear, month = bkState.calMonth;
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const dayLabels  = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const today      = new Date(); today.setHours(0,0,0,0);
+      const minDate    = new Date(today); minDate.setDate(minDate.getDate()+1); // 24h min
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+
+      let html = `<div class="cal-header">
+        <button class="cal-nav" onclick="shiftMonth(-1)">←</button>
+        <span class="cal-month">${monthNames[month]} ${year}</span>
+        <button class="cal-nav" onclick="shiftMonth(1)">→</button>
+      </div>`;
+
+      dayLabels.forEach(d=>{ html += `<div class="cal-day-label">${d}</div>`; });
+      for(let i=0;i<firstDay;i++) html += `<div class="cal-day empty"></div>`;
+
+      for(let d=1;d<=daysInMonth;d++){
+        const date = new Date(year, month, d);
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isPast  = date < minDate;
+        const isSel   = bkState.date === dateStr;
+        const isToday = date.toDateString() === today.toDateString();
+        let cls = 'cal-day';
+        if(isPast) cls += ' disabled';
+        if(isSel)  cls += ' selected';
+        if(isToday) cls += ' today';
+        const onclick = isPast ? '' : `onclick="selectDate('${dateStr}')"`;
+        html += `<div class="${cls}" ${onclick}>${d}</div>`;
+      }
+
+      cal.innerHTML = html;
+    }
+
+    function shiftMonth(dir){
+      bkState.calMonth += dir;
+      if(bkState.calMonth < 0){ bkState.calMonth=11; bkState.calYear--; }
+      if(bkState.calMonth > 11){ bkState.calMonth=0;  bkState.calYear++; }
+      renderCalendar();
+    }
+
+    function selectDate(dateStr){
+      bkState.date = dateStr;
+      bkState.time = null;
+      renderCalendar();
+      const btn = document.getElementById('btn-to-step2');
+      btn.disabled = false; btn.style.opacity='1'; btn.style.cursor='pointer';
+      btn.textContent = 'Select a Date →';
+    }
+
+    async function loadSlots(date){
+      const grid = document.getElementById('slots-grid');
+      const lbl  = document.getElementById('slots-date-label');
+      grid.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading available times…</p>';
+      lbl.textContent = formatDateDisplay(date);
+
+      try {
+        const res  = await fetch(`/.netlify/functions/get-slots?date=${date}`);
+        const data = await res.json();
+        bkState.slots = data.slots || [];
+        renderSlots();
+      } catch(e) {
+        grid.innerHTML = '<p style="color:var(--muted);font-size:13px;">Unable to load times. Please try again.</p>';
+      }
+    }
+
+    function renderSlots(){
+      const grid = document.getElementById('slots-grid');
+      if(!bkState.slots.length){ grid.innerHTML='<p style="color:var(--muted);font-size:13px;">No slots available for this date.</p>'; return; }
+      grid.innerHTML = bkState.slots.map(s=>{
+        const isSel   = bkState.time === s.time;
+        const isTaken = !s.available;
+        let cls = 'slot-pill';
+        if(isSel)   cls += ' selected';
+        if(isTaken) cls += ' taken';
+        const onclick = isTaken ? '' : `onclick="selectSlot('${s.time}')"`;
+        return `<div class="${cls}" ${onclick}>${formatTime(s.time)}</div>`;
+      }).join('');
+    }
+
+    function selectSlot(time){
+      bkState.time = time;
+      renderSlots();
+      const btn = document.getElementById('btn-to-step3');
+      btn.disabled = false; btn.style.opacity='1'; btn.style.cursor='pointer';
+      btn.textContent = 'Choose a Time →';
+    }
+
+    function formatTime(t){
+      const [h,m] = t.split(':').map(Number);
+      const ampm = h>=12?'pm':'am';
+      const h12  = h>12?h-12:h;
+      return `${h12}:${String(m).padStart(2,'0')}${ampm}`;
+    }
+
+    function formatDateDisplay(dateStr){
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const d = new Date(dateStr+'T00:00:00');
+      return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function renderSummary(){
+      const s = document.getElementById('booking-summary');
+      const name    = document.getElementById('bk-name').value;
+      const email   = document.getElementById('bk-email').value;
+      const phone   = document.getElementById('bk-phone').value;
+      const purpose = document.getElementById('bk-purpose').value;
+      const model   = document.getElementById('bk-model').value;
+      s.innerHTML = [
+        ['Date',    formatDateDisplay(bkState.date)],
+        ['Time',    formatTime(bkState.time)],
+        ['Name',    name],
+        ['Email',   email],
+        ['Phone',   phone],
+        ['Purpose', purpose],
+        ['Watch Model', model||'—'],
+      ].map(([l,v])=>`<div class="booking-summary-row"><span class="booking-summary-label">${l}</span><span class="booking-summary-value">${v}</span></div>`).join('');
+    }
+
+    async function submitBooking(){
+      const btn = document.getElementById('btn-confirm');
+      btn.disabled = true; btn.textContent = 'Confirming…';
+      const err = document.getElementById('confirm-error');
+      err.classList.remove('visible');
+
+      try {
+        const res = await fetch('/.netlify/functions/book-appointment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date:       bkState.date,
+            time:       bkState.time,
+            name:       document.getElementById('bk-name').value,
+            email:      document.getElementById('bk-email').value,
+            phone:      document.getElementById('bk-phone').value,
+            purpose:    document.getElementById('bk-purpose').value,
+            watchModel: document.getElementById('bk-model').value,
+            consent:    document.getElementById('bk-consent').checked
+          })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || 'Failed');
+        goToStep(5);
+      } catch(e) {
+        err.classList.add('visible');
+        btn.disabled = false; btn.textContent = 'Confirm Appointment';
+      }
+    }
+
+    // Validate details step
+    const _origGoToStep = goToStep;
+    goToStep = function(n){
+      if(n===4){
+        const name    = document.getElementById('bk-name').value.trim();
+        const email   = document.getElementById('bk-email').value.trim();
+        const phone   = document.getElementById('bk-phone').value.trim();
+        const purpose = document.getElementById('bk-purpose').value.trim();
+        if(!name||!email||!phone||!purpose){
+          document.getElementById('details-error').classList.add('visible');
+          return;
+        }
+      }
+      _origGoToStep(n);
+    };
   </script>
 
   <!-- decline confirm modal — at body level so fixed positioning works correctly -->
@@ -1193,6 +1463,101 @@
       <div class="confirm-yes-wrap">
         <p class="confirm-yes-label">Declining will return your timepiece without repair.<br>This cannot be reversed.</p>
         <button class="confirm-yes" onclick="confirmDecline()">Decline Repair</button>
+      </div>
+    </div>
+  </div>
+  <!-- BOOKING OVERLAY -->
+  <div class="booking-overlay" id="booking-overlay" onclick="handleOverlayClick(event)">
+    <div class="booking-modal" id="booking-modal">
+      <div class="booking-top-bar"></div>
+      <div class="booking-header">
+        <div>
+          <p class="booking-eyebrow">Tissot Boutique · PLQ Mall</p>
+          <h2 class="booking-title">Book an Appointment</h2>
+        </div>
+        <button class="booking-close" onclick="closeBooking()">✕</button>
+      </div>
+      <div class="booking-body">
+        <div class="booking-steps">
+          <div class="booking-step-tab active" id="tab-1">Date</div>
+          <div class="booking-step-tab" id="tab-2">Time</div>
+          <div class="booking-step-tab" id="tab-3">Your Details</div>
+          <div class="booking-step-tab" id="tab-4">Confirm</div>
+        </div>
+
+        <!-- Step 1: Date -->
+        <div class="booking-panel active" id="panel-1">
+          <div class="booking-calendar" id="booking-calendar"></div>
+          <p style="font-size:12px;color:var(--muted);line-height:1.7;">Please select a date at least 24 hours in advance. We are open daily from 11:00am to 9:30pm.</p>
+          <div class="booking-nav">
+            <span></span>
+            <button class="btn btn-primary" onclick="goToStep(2)" id="btn-to-step2" disabled style="opacity:0.4;cursor:not-allowed;">Select a Date</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Time -->
+        <div class="booking-panel" id="panel-2">
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px;letter-spacing:0.05em;" id="slots-date-label"></p>
+          <div class="slots-grid" id="slots-grid"><p style="color:var(--muted);font-size:13px;">Loading available times…</p></div>
+          <div class="booking-nav">
+            <button class="booking-back" onclick="goToStep(1)">← Back</button>
+            <button class="btn btn-primary" onclick="goToStep(3)" id="btn-to-step3" disabled style="opacity:0.4;cursor:not-allowed;">Choose a Time</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Details -->
+        <div class="booking-panel" id="panel-3">
+          <div class="booking-field">
+            <label class="booking-label">Full Name *</label>
+            <input class="booking-input" id="bk-name" type="text" placeholder="Your full name" />
+          </div>
+          <div class="booking-field">
+            <label class="booking-label">Email Address *</label>
+            <input class="booking-input" id="bk-email" type="email" placeholder="your@email.com" />
+          </div>
+          <div class="booking-field">
+            <label class="booking-label">Mobile Number *</label>
+            <input class="booking-input" id="bk-phone" type="tel" placeholder="+65 XXXX XXXX" />
+          </div>
+          <div class="booking-field">
+            <label class="booking-label">Purpose of Visit *</label>
+            <input class="booking-input" id="bk-purpose" type="text" placeholder="e.g. Watch consultation, Repair enquiry, Gift selection…" />
+          </div>
+          <div class="booking-field">
+            <label class="booking-label">Watch Model or Collection of Interest</label>
+            <input class="booking-input" id="bk-model" type="text" placeholder="e.g. PRX, Le Locle, Seastar — or leave blank" />
+          </div>
+          <div class="booking-consent">
+            <input type="checkbox" id="bk-consent" />
+            <label for="bk-consent">I consent to Regence Group contacting me regarding my appointment and keeping me informed of new arrivals, exclusive events, and promotions in accordance with Singapore's Personal Data Protection Act.</label>
+          </div>
+          <p class="booking-error" id="details-error">Please fill in all required fields.</p>
+          <div class="booking-nav">
+            <button class="booking-back" onclick="goToStep(2)">← Back</button>
+            <button class="btn btn-primary" onclick="goToStep(4)">Review Booking</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Confirm -->
+        <div class="booking-panel" id="panel-4">
+          <div class="booking-summary" id="booking-summary"></div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.85;margin-bottom:24px;">We look forward to welcoming you. A confirmation will be sent to your email and WhatsApp upon booking.</p>
+          <p class="booking-error" id="confirm-error">Something went wrong. Please try again.</p>
+          <div class="booking-nav">
+            <button class="booking-back" onclick="goToStep(3)">← Back</button>
+            <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()">Confirm Appointment</button>
+          </div>
+        </div>
+
+        <!-- Success -->
+        <div class="booking-panel" id="panel-success">
+          <div class="booking-success">
+            <div class="booking-success-icon"></div>
+            <h3 class="booking-success-title">Your appointment is confirmed.</h3>
+            <p class="booking-success-sub">We look forward to welcoming you to the Tissot Boutique. A confirmation has been sent to your email and WhatsApp.</p>
+            <button class="btn btn-primary" onclick="closeBooking()">Close</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
