@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" sizes="512x512" href="/favicon-512.png">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,15 +29,16 @@
     .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; letter-spacing: 0.12em; color: var(--ink); text-transform: uppercase; cursor: pointer; }
     .nav-logo span { color: var(--gold); }
     .nav-links { display: flex; gap: 32px; list-style: none; }
-    .nav-links a { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: color 0.2s; }
-    .nav-links a:hover, .nav-links a.active { color: var(--ink); }
+    .nav-links a { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: color 0.2s; display: inline-flex; flex-direction: column; align-items: center; font-weight: 300; }
+    .nav-links a::after { content: attr(data-text); font-weight: 600; height: 0; visibility: hidden; overflow: hidden; pointer-events: none; letter-spacing: 0.15em; }
+    .nav-links a:hover, .nav-links a.active { color: var(--ink); font-weight: 600; }
     .page { display: none; padding-top: 64px; }
     .page.active { display: block; }
     .section { padding: 96px 48px; }
     .container { max-width: 1080px; margin: 0 auto; }
     .section-label { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
     .section-title { font-size: clamp(28px, 3.5vw, 44px); color: var(--ink); margin-bottom: 16px; }
-    .divider { width: 40px; height: 1px; background: var(--gold); margin: 24px 0; }
+    .divider { width: 48px; height: 1px; background: var(--gold); margin: 24px 0; }
     .btn { display: inline-block; padding: 14px 32px; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: none; }
     .btn-primary { background: var(--ink); color: var(--white); }
     .btn-primary:hover { background: var(--ink-mid); }
@@ -73,6 +74,9 @@
     .portfolio-intro .divider { margin: 24px auto; }
     .brand-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); max-width: 1080px; margin: 0 auto; }
     .brand-card { background: var(--white); padding: 40px 32px; transition: background 0.2s; }
+    .brand-card:hover .brand-card-name { font-weight: 500; }
+    .brand-card:hover { background: var(--warm); }
+    .brand-card:hover .brand-card-name { color: var(--gold); }
     .brand-card:hover { background: var(--warm); }
     .brand-card-flag { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
     .brand-card-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--ink); margin-bottom: 16px; }
@@ -299,11 +303,11 @@
   <nav class="nav">
     <span class="nav-logo" onclick="showPage('home')">Regence<span>.</span></span>
     <ul class="nav-links">
-      <li><a onclick="showPage('home')"      id="nav-home"      class="active">Home</a></li>
-      <li><a onclick="showPage('portfolio')" id="nav-portfolio">Portfolio</a></li>
-      <li><a onclick="showPage('services')"  id="nav-services">Services</a></li>
-      <li><a onclick="showPage('about')"     id="nav-about">About</a></li>
-      <li><a onclick="showPage('contact')"   id="nav-contact">Contact</a></li>
+      <li><a onclick="showPage('home')"      id="nav-home"      class="active" data-text="Home">Home</a></li>
+      <li><a onclick="showPage('portfolio')" id="nav-portfolio" data-text="Portfolio">Portfolio</a></li>
+      <li><a onclick="showPage('services')"  id="nav-services"  data-text="Services">Services</a></li>
+      <li><a onclick="showPage('about')"     id="nav-about"     data-text="About">About</a></li>
+      <li><a onclick="showPage('contact')"   id="nav-contact"   data-text="Contact">Contact</a></li>
     </ul>
   </nav>
 
@@ -345,7 +349,7 @@
         <div class="brand-item"><div class="brand-name">Zeppelin</div><div class="brand-origin">Germany</div></div>
         <div class="brand-item"><div class="brand-name">Lotus</div><div class="brand-origin">Spain</div></div>
         <div class="brand-item"><div class="brand-name">Candino</div><div class="brand-origin">Switzerland</div></div>
-        <div class="brand-item" style="border-right: none;"><div class="brand-name">Calypso</div><div class="brand-origin">Switzerland</div></div>
+        <div class="brand-item" style="border-right: none;"><div class="brand-name">Calypso</div><div class="brand-origin">Spain</div></div>
       </div>
     </section>
     <section class="section">
@@ -382,7 +386,7 @@
       <div class="brand-card"><p class="brand-card-flag">Germany · Aviation</p><h3 class="brand-card-name">Zeppelin</h3><p class="brand-card-text">Inspired by the golden age of aviation, Zeppelin timepieces offer German precision, classic aesthetics, and compelling storytelling — resonating with discerning lifestyle consumers.</p></div>
       <div class="brand-card"><p class="brand-card-flag">Spain · Lifestyle</p><h3 class="brand-card-name">Lotus</h3><p class="brand-card-text">A contemporary lifestyle watch brand with wide demographic appeal. Lotus offers fashion-forward design at accessible price points, making it a strong performer in multi-brand retail environments.</p></div>
       <div class="brand-card"><p class="brand-card-flag">Switzerland · Understated</p><h3 class="brand-card-name">Candino</h3><p class="brand-card-text">Swiss-made with quiet confidence. Candino delivers understated elegance and reliable Swiss quality at an approachable price — ideal for consumers seeking authenticity without ostentation.</p></div>
-      <div class="brand-card"><p class="brand-card-flag">Switzerland · Active</p><h3 class="brand-card-name">Calypso</h3><p class="brand-card-text">A vibrant, youth-oriented watch brand built for active lifestyles. Calypso's colourful, sporty designs drive impulse purchase and perform well in high-footfall retail locations.</p></div>
+      <div class="brand-card"><p class="brand-card-flag">Spain · Active</p><h3 class="brand-card-name">Calypso</h3><p class="brand-card-text">A vibrant, youth-oriented watch brand built for active lifestyles. Calypso's colourful, sporty designs drive impulse purchase and perform well in high-footfall retail locations.</p></div>
     </div>
     <p style="font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); padding: 48px 48px 16px; max-width: 1080px; margin: 0 auto;">Owned & Operated Boutiques</p>
     <div class="boutique-section">
@@ -390,11 +394,11 @@
         <div class="boutique-content">
           <span class="boutique-badge">Owned & Operated</span>
           <div class="boutique-name">Tissot</div>
-          <p class="boutique-location">#01-27, PLQ Mall, Singapore</p>
+          <p class="boutique-location">Singapore</p>
           <p class="boutique-text">Regence Group owns and operates the official Tissot boutique at Paya Lebar Quarter Mall, Singapore. As an owned retail touchpoint, the boutique serves as a direct expression of our brand-first philosophy: delivering an exceptional customer experience while deepening Tissot's presence in the Singapore market.</p>
           <div class="boutique-meta">
             <div class="meta-item"><p class="meta-label">Brand Origin</p><p class="meta-value">Le Locle, Switzerland</p></div>
-            <div class="meta-item"><p class="meta-label">Location</p><p class="meta-value">#01-27, PLQ Mall</p></div>
+            <div class="meta-item"><p class="meta-label">Location</p><p class="meta-value">Singapore</p></div>
             <div class="meta-item"><p class="meta-label">Format</p><p class="meta-value">Monobrand Boutique</p></div>
             <div class="meta-item"><p class="meta-label">Opening Hours</p><p class="meta-value">Daily, 11am – 9:30pm</p></div>
           </div>
