@@ -79,13 +79,21 @@ exports.handler = async function(event) {
   const statusLower = status.toLowerCase();
 
   if (statusLower === 'quotation; pending payment' && quotationAmt) {
-    const stripeKey = brand && brand.toLowerCase() === 'tissot'
+    // Match Tissot regardless of exact capitalisation or extra spaces
+    const brandNorm = (brand || '').toLowerCase().trim();
+    const stripeKey = brandNorm.includes('tissot')
       ? process.env.STRIPE_SECRET_KEY_TISSOT
       : null;
 
+    if (!stripeKey) {
+      console.log(`No Stripe key found for brand: "${brand}" (normalised: "${brandNorm}")`);
+    }
+
     if (stripeKey) {
       try {
-        const amountCents = Math.round(parseFloat(quotationAmt.replace(/[^0-9.]/g, '')) * 100);
+        const cleanAmt = quotationAmt.replace(/[^0-9.]/g, '').trim();
+        const amountCents = Math.round(parseFloat(cleanAmt) * 100);
+        console.log(`Amount raw: "${quotationAmt}" cleaned: "${cleanAmt}" cents: ${amountCents}`);
         if (amountCents > 0) {
           const stripeRes = await fetch('https://api.stripe.com/v1/payment_links', {
             method: 'POST',
@@ -112,7 +120,9 @@ exports.handler = async function(event) {
             }).toString()
           });
           const stripeData = await stripeRes.json();
+          console.log('Stripe response:', JSON.stringify(stripeData));
           if (stripeData.url) paymentLink = stripeData.url;
+          else console.error('Stripe did not return a URL:', JSON.stringify(stripeData));
         }
       } catch (e) {
         console.error('Stripe error:', e);
