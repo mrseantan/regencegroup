@@ -65,14 +65,20 @@ exports.handler = async function(event) {
     body: JSON.stringify({ error: 'No matching record found. Please check your job number and mobile digits.' })
   };
 
-  const warrantyRaw    = String(match[8]  || '').trim().toUpperCase();
+  // Column index reference (0-based):
+  // A=0 Date, B=1 Repair Job No., C=2 SAV Repair No., D=3 Name, E=4 Phone No
+  // F=5 Email, G=6 Customer Request (internal), H=7 Quotation Price
+  // I=8 Quotation Y/N, J=9 Warranty Y/N, K=10 Invoice No.
+  // L=11 SAV Tax Invoice No., M=12 Collection Date, N=13 Remark
+  // O=14 Status, P=15 Brand
+  const warrantyRaw    = String(match[9]  || '').trim().toUpperCase();
   const warrantyYes    = warrantyRaw === 'Y' || warrantyRaw === 'YES';
-  const quotationRaw   = String(match[7]  || '').trim().toUpperCase();
+  const quotationRaw   = String(match[8]  || '').trim().toUpperCase();
   const hasQuote       = quotationRaw === 'Y' || quotationRaw === 'YES';
-  const quotationAmt   = match[6]  ? String(match[6]).trim()  : null;
-  const status         = match[13] ? String(match[13]).trim() : 'Pending';
-  const collectionDate = match[11] ? String(match[11]).trim() : null;
-  const brand          = match[14] ? String(match[14]).trim() : null;
+  const quotationAmt   = match[7]  ? String(match[7]).trim()  : null;
+  const status         = match[14] ? String(match[14]).trim() : 'Pending';
+  const collectionDate = match[12] ? String(match[12]).trim() : null;
+  const brand          = match[15] ? String(match[15]).trim() : null;
   const customerEmail  = match[5]  ? String(match[5]).trim()  : null;
   const customerName   = match[3]  ? String(match[3]).trim()  : null;
 
@@ -138,7 +144,7 @@ exports.handler = async function(event) {
       hasQuotation:    hasQuote,
       quotationAmount: hasQuote && quotationAmt ? quotationAmt : null,
       collectionDate,
-      remark:          match[12] || '',
+      remark:          match[13] || '',
       brand,
       paymentLink,
       paymentLinkId

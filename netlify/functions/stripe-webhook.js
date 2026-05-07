@@ -52,7 +52,7 @@ async function updateSheetStatus(rowIndex, newStatus) {
   const token   = await getGoogleAccessToken();
   const SHEET_ID = process.env.SHEET_ID;
   // Column N is status (0-indexed=13, sheets A=1 so N=14)
-  const range   = `Repair Job!N${rowIndex}`;
+  const range   = `Repair Job!O${rowIndex}`;
 
   const res = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
