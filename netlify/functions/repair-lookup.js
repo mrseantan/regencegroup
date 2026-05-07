@@ -5,41 +5,24 @@ exports.handler = async function(event) {
     'Content-Type': 'application/json'
   };
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: HEADERS, body: '' };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers: HEADERS, body: JSON.stringify({ error: 'Method not allowed' }) };
-  }
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: HEADERS, body: '' };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, headers: HEADERS, body: JSON.stringify({ error: 'Method not allowed' }) };
 
   let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Invalid request' }) };
-  }
+  try { body = JSON.parse(event.body); }
+  catch { return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Invalid request' }) }; }
 
   const { jobNumber, mobileLast4 } = body;
-
-  if (!jobNumber || !mobileLast4) {
-    return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Job number and last 4 digits of mobile are required' }) };
-  }
-
-  if (!/^\d{4}$/.test(mobileLast4)) {
-    return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Please enter exactly 4 digits' }) };
-  }
+  if (!jobNumber || !mobileLast4) return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Job number and last 4 digits of mobile are required' }) };
+  if (!/^\d{4}$/.test(mobileLast4)) return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Please enter exactly 4 digits' }) };
 
   const API_KEY  = process.env.GOOGLE_API_KEY;
   const SHEET_ID = process.env.SHEET_ID;
+  if (!API_KEY || !SHEET_ID) return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: 'Server configuration error' }) };
 
-  if (!API_KEY || !SHEET_ID) {
-    return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: 'Server configuration error' }) };
-  }
-
-  // Read columns A through O (Date through Status)
-  const range    = 'Repair Job!A:O';
-  const url      = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+  // Columns A–P
+  const range = 'Repair Job!A:P';
+  const url   = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
 
   let rows;
   try {
@@ -56,70 +39,109 @@ exports.handler = async function(event) {
     return { statusCode: 502, headers: HEADERS, body: JSON.stringify({ error: 'Could not reach data source' }) };
   }
 
-  if (rows.length < 2) {
-    return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: 'No records found' }) };
-  }
+  if (rows.length < 2) return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: 'No records found' }) };
 
-  // Row 0 is header — skip it
-  // Columns (0-indexed):
-  // A=0  Date
-  // B=1  Repair Job No.
-  // C=2  SAV Repair No.
-  // D=3  Name
-  // E=4  Phone No
-  // F=5  Email
-  // G=6  Customer Request
-  // H=7  Quotation Price
-  // I=8  Quotation Y/N
-  // J=9  Warranty Y/N
-  // K=10 Invoice No.
-  // L=11 SAV Tax Invoice No.
-  // M=12 Collection Date
-  // N=13 Remark
-  // O=14 Status
+  // Column index reference:
+  // A=0 Date, B=1 Repair Job No., C=2 SAV Repair No., D=3 Name, E=4 Phone No
+  // F=5 Email, G=6 Quotation Price, H=7 Quotation Y/N, I=8 Warranty Y/N
+  // J=9 Invoice No., K=10 SAV Tax Invoice No., L=11 Collection Date
+  // M=12 Remark, N=13 Status, O=14 Brand
 
   const normaliseJob = s => String(s || '').trim().toLowerCase().replace(/\s+/g, '');
   const searchJob    = normaliseJob(jobNumber);
 
-  const match = rows.slice(1).find(row => {
-    const rowJob    = normaliseJob(row[1] || '');
-    const rowPhone  = String(row[4] || '').replace(/\D/g, ''); // digits only
-    const last4     = rowPhone.slice(-4);
-    return rowJob === searchJob && last4 === mobileLast4;
+  // find row index too (for write-back)
+  let matchIndex = -1;
+  const match = rows.slice(1).find((row, i) => {
+    const rowJob   = normaliseJob(row[1] || '');
+    const rowPhone = String(row[4] || '').replace(/\D/g, '');
+    const last4    = rowPhone.slice(-4);
+    if (rowJob === searchJob && last4 === mobileLast4) { matchIndex = i + 2; return true; }
+    return false;
   });
 
-  if (!match) {
-    return {
-      statusCode: 404,
-      headers: HEADERS,
-      body: JSON.stringify({ error: 'No matching record found. Please check your job number and mobile digits.' })
-    };
+  if (!match) return {
+    statusCode: 404, headers: HEADERS,
+    body: JSON.stringify({ error: 'No matching record found. Please check your job number and mobile digits.' })
+  };
+
+  const warrantyRaw    = String(match[8]  || '').trim().toUpperCase();
+  const warrantyYes    = warrantyRaw === 'Y' || warrantyRaw === 'YES';
+  const quotationRaw   = String(match[7]  || '').trim().toUpperCase();
+  const hasQuote       = quotationRaw === 'Y' || quotationRaw === 'YES';
+  const quotationAmt   = match[6]  ? String(match[6]).trim()  : null;
+  const status         = match[13] ? String(match[13]).trim() : 'Pending';
+  const collectionDate = match[11] ? String(match[11]).trim() : null;
+  const brand          = match[14] ? String(match[14]).trim() : null;
+  const customerEmail  = match[5]  ? String(match[5]).trim()  : null;
+  const customerName   = match[3]  ? String(match[3]).trim()  : null;
+
+  // Generate Stripe payment link if status is quotation pending payment
+  let paymentLink = null;
+  let paymentLinkId = null;
+  const statusLower = status.toLowerCase();
+
+  if (statusLower === 'quotation; pending payment' && hasQuote && quotationAmt) {
+    const stripeKey = brand && brand.toLowerCase() === 'tissot'
+      ? process.env.STRIPE_SECRET_KEY_TISSOT
+      : null;
+
+    if (stripeKey) {
+      try {
+        const amountCents = Math.round(parseFloat(quotationAmt.replace(/[^0-9.]/g, '')) * 100);
+        if (amountCents > 0) {
+          const stripeRes = await fetch('https://api.stripe.com/v1/payment_links', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${stripeKey}`,
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+              'line_items[0][price_data][currency]': 'sgd',
+              'line_items[0][price_data][product_data][name]': `Watch Repair — Job ${match[1] || jobNumber}`,
+              'line_items[0][price_data][product_data][description]': `Repair service for ${customerName || 'customer'}`,
+              'line_items[0][price_data][unit_amount]': String(amountCents),
+              'line_items[0][quantity]': '1',
+              'metadata[job_number]': String(match[1] || jobNumber),
+              'metadata[row_index]': String(matchIndex),
+              'metadata[brand]': String(brand || ''),
+              'metadata[customer_name]': String(customerName || ''),
+              'metadata[customer_email]': String(customerEmail || ''),
+              'metadata[amount]': String(quotationAmt),
+              'after_completion[type]': 'redirect',
+              'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/payment-success`
+            }).toString()
+          });
+
+          const stripeData = await stripeRes.json();
+          if (stripeData.url) {
+            paymentLink = stripeData.url;
+            paymentLinkId = stripeData.id;
+          }
+        }
+      } catch (e) {
+        console.error('Stripe error:', e);
+      }
+    }
   }
-
-  const warrantyRaw  = String(match[9] || '').trim().toUpperCase();
-  const warrantyYes  = warrantyRaw === 'Y' || warrantyRaw === 'YES';
-
-  const quotationRaw = String(match[8] || '').trim().toUpperCase();
-  const hasQuote     = quotationRaw === 'Y' || quotationRaw === 'YES';
-
-  const quotationAmt = match[7] ? String(match[7]).trim() : null;
-  const status       = match[14] ? String(match[14]).trim() : 'Pending';
-  const collectionDate = match[12] ? String(match[12]).trim() : null;
 
   return {
     statusCode: 200,
     headers: HEADERS,
     body: JSON.stringify({
-      jobNumber:      match[1] || '',
-      savRepairNo:    match[2] || '',
-      customerName:   match[3] || '',
-      date:           match[0] || '',
-      status:         status,
-      warranty:       warrantyYes,
-      hasQuotation:   hasQuote,
+      jobNumber:       match[1]  || '',
+      savRepairNo:     match[2]  || '',
+      customerName,
+      date:            match[0]  || '',
+      status,
+      warranty:        warrantyYes,
+      hasQuotation:    hasQuote,
       quotationAmount: hasQuote && quotationAmt ? quotationAmt : null,
-      collectionDate: collectionDate,
-      remark:         match[13] || ''
+      collectionDate,
+      remark:          match[12] || '',
+      brand,
+      paymentLink,
+      paymentLinkId
     })
   };
 };
