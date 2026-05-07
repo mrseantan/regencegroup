@@ -104,6 +104,8 @@ exports.handler = async function(event) {
               'metadata[brand]': String(brand || ''),
               'metadata[customer_name]': String(customerName || ''),
               'metadata[customer_email]': String(customerEmail || ''),
+              'metadata[customer_phone]': String(match[4] || ''),
+              'metadata[sav_repair_no]': String(match[2] || ''),
               'metadata[amount]': String(quotationAmt),
               'after_completion[type]': 'redirect',
               'after_completion[redirect][url]': `https://${process.env.SITE_URL || 'regencegroup.com'}/?payment=success&job=${encodeURIComponent(match[1] || jobNumber)}&amount=${encodeURIComponent(quotationAmt)}`
@@ -125,6 +127,8 @@ exports.handler = async function(event) {
       jobNumber:       match[1]  || '',
       savRepairNo:     match[2]  || '',
       customerName,
+      customerEmail,
+      customerPhone:   match[4]  || '',
       date:            match[0]  || '',
       status,
       warranty:        warrantyYes,

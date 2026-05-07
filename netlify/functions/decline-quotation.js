@@ -75,8 +75,12 @@ exports.handler = async function(event) {
   try { body = JSON.parse(event.body); }
   catch { return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Invalid request' }) }; }
 
-  const { jobNumber, rowIndex, customerName, brand, quotationAmount } = body;
+  const { jobNumber, rowIndex, customerName, customerEmail, customerPhone, savRepairNo, brand, quotationAmount } = body;
   if (!jobNumber || !rowIndex) return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Missing required fields' }) };
+
+  const savNo   = savRepairNo    || '—';
+  const phone   = customerPhone  || '—';
+  const email   = customerEmail  || '—';
 
   // 1 — Update sheet
   try { await updateSheet(rowIndex); }
@@ -87,19 +91,51 @@ exports.handler = async function(event) {
 
   // 2 — Email team and manager
   const recipients = [process.env.NOTIFY_EMAIL, process.env.NOTIFY_MANAGER_EMAIL].filter(Boolean);
-  const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px">
-    <h2 style="color:#7B2D2D;margin-bottom:8px;font-family:Georgia,serif">Quotation Declined</h2>
-    <p style="color:#7A7568;margin-bottom:24px;font-size:14px">A customer has declined their repair quotation. The Google Sheet has been updated automatically.</p>
-    <table style="width:100%;border-collapse:collapse">
-      <tr><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#7A7568;width:40%;font-size:13px">Job Number</td><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#1A1814;font-weight:bold;font-size:13px">${jobNumber}</td></tr>
-      <tr><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#7A7568;font-size:13px">Customer</td><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#1A1814;font-size:13px">${customerName || '—'}</td></tr>
-      <tr><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#7A7568;font-size:13px">Brand</td><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#1A1814;font-size:13px">${brand || '—'}</td></tr>
-      <tr><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#7A7568;font-size:13px">Quotation Amount</td><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#1A1814;font-size:13px">SGD ${quotationAmount || '—'}</td></tr>
-      <tr><td style="padding:10px 0;color:#7A7568;font-size:13px">New Status</td><td style="padding:10px 0;color:#7B2D2D;font-weight:bold;font-size:13px">Quotation rejected — return without repair</td></tr>
-    </table>
-    <p style="margin-top:16px;font-size:13px;color:#7A7568;line-height:1.7">Please prepare the timepiece for return and update the collection date when ready.</p>
-    <p style="margin-top:32px;font-size:11px;color:#B8A06A;letter-spacing:0.1em;text-transform:uppercase">Regence Group · After-Sales System</p>
-  </div>`;
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#E8E4DC;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#E8E4DC;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <tr><td height="3" style="background:linear-gradient(90deg,#7B2D2D,#a04040,#7B2D2D);font-size:0;">&nbsp;</td></tr>
+        <tr><td style="background:#F5F2EC;padding:36px 48px 28px;text-align:center;border-left:0.5px solid rgba(184,160,106,0.3);border-right:0.5px solid rgba(184,160,106,0.3);">
+          <p style="font-family:Georgia,serif;font-size:22px;letter-spacing:0.18em;text-transform:uppercase;color:#1A1814;margin:0 0 4px;">Regence<span style="color:#B8A06A;">.</span></p>
+          <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#7A7568;margin:0;">After-Sales System</p>
+        </td></tr>
+        <tr><td style="background:#FDFCFA;padding:40px 48px;border-left:0.5px solid rgba(184,160,106,0.3);border-right:0.5px solid rgba(184,160,106,0.3);">
+          <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#7B2D2D;margin:0 0 12px;opacity:0.8;">Action Required</p>
+          <h2 style="font-family:Georgia,serif;font-size:24px;color:#1A1814;margin:0 0 16px;line-height:1.2;">Quotation Declined — Job ${jobNumber}</h2>
+          <p style="font-size:13px;color:#7A7568;line-height:1.9;margin:0 0 28px;">A customer has declined their repair quotation. The Google Sheet has been updated automatically. Please prepare the timepiece for return.</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F2EC;border:0.5px solid rgba(184,160,106,0.25);margin-bottom:24px;">
+            <tr><td style="padding:14px 24px;border-bottom:0.5px solid rgba(184,160,106,0.2);">
+              <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#B8A06A;margin:0;">Job Details</p>
+            </td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Repair Job No.</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">${jobNumber}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">SAV Repair No.</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">${savNo}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Customer Name</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">${customerName || '—'}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Customer Phone</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">${phone}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Customer Email</td><td align="right" style="font-size:13px;color:#1A1814;">${email}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Brand</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">${brand || '—'}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;border-bottom:0.5px solid rgba(184,160,106,0.12);"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">Quotation Amount</td><td align="right" style="font-family:Georgia,serif;font-size:17px;color:#1A1814;">SGD ${quotationAmount || '—'}</td></tr></table></td></tr>
+            <tr><td style="padding:10px 24px;"><table width="100%"><tr><td style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#7A7568;">New Status</td><td align="right" style="font-family:Georgia,serif;font-size:15px;color:#7B2D2D;">Quotation rejected — return without repair</td></tr></table></td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+            <tr><td style="padding:16px 20px;background:#FDF5F5;border-left:2px solid rgba(123,45,45,0.4);">
+              <p style="font-size:12px;color:#7A7568;line-height:1.9;margin:0;">Please prepare the timepiece for return and update the <strong style="color:#3D3930;">Collection Date</strong> in the Google Sheet when the watch is ready for pickup. The customer will be notified automatically.</p>
+            </td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;"><tr><td height="1" style="background:rgba(184,160,106,0.25);font-size:0;">&nbsp;</td></tr></table>
+          <p style="font-family:Georgia,serif;font-size:18px;color:#1A1814;margin:0;">Regence<span style="color:#B8A06A;">.</span></p>
+        </td></tr>
+        <tr><td style="background:#F5F2EC;padding:20px 48px;text-align:center;border-left:0.5px solid rgba(184,160,106,0.3);border-right:0.5px solid rgba(184,160,106,0.3);border-bottom:0.5px solid rgba(184,160,106,0.3);">
+          <p style="font-size:10px;color:#7A7568;line-height:1.7;margin:0;">This is an automated notification from the Regence Group After-Sales System.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
   try { await sendEmail(`Quotation Declined — Job ${jobNumber} (${brand || 'Unknown'})`, html, recipients); }
   catch (e) { console.error('Email error:', e); }

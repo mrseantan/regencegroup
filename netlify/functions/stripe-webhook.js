@@ -121,11 +121,17 @@ exports.handler = async function(event) {
     catch (e) { console.error('Sheet update error:', e); }
   }
 
+  // Get full row details from metadata
+  const savRepairNo = meta.sav_repair_no || '—';
+  const custPhone   = meta.customer_phone || '—';
+
   const html = emailTemplate([
     'Payment Received — Repair Authorised',
     'A repair quotation has been paid. The Google Sheet has been updated automatically.',
-    ['Job Number', jobNum],
-    ['Customer', custName],
+    ['Repair Job No.', jobNum],
+    ['SAV Repair No.', savRepairNo],
+    ['Customer Name', custName],
+    ['Customer Phone', custPhone],
     ['Customer Email', custEmail || '—'],
     ['Brand', brand],
     ['Amount Paid', amount, '#8C7245'],
