@@ -626,15 +626,12 @@
   </div>
 
   <script>
-    // ── READ PAYMENT RESULT FROM HASH — hashes are never stripped by redirects ──
+    // ── READ PAYMENT RESULT FROM URL — read immediately before anything clears it ──
     (function(){
-      const hash = window.location.hash.replace('#','');
-      const hp = new URLSearchParams(hash);
+      const hp = new URLSearchParams(window.location.search);
       window._paymentSuccess       = hp.get('payment') === 'success';
       window._paymentSuccessJob    = hp.get('job')    || '';
       window._paymentSuccessAmount = hp.get('amount') || '';
-      // DO NOT clear hash here — clearing it causes a re-run that resets _paymentSuccess to false
-      // Hash is cleared inside showPaymentSuccess() after display is complete
     })();
 
     // ── PAGE NAVIGATION ──
@@ -943,13 +940,12 @@
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') checkRepair(); });
     });
 
-    // Auto-populate job number from email link — reads from ?job= query param
-    // (email links use ?job= which may get stripped, but hash fallback also supported)
+    // Auto-populate job number from email link e.g. ?job=TS-2025-0142
+    // Skip if this is a payment success redirect
     (function(){
-      const qJob = new URLSearchParams(window.location.search).get('job');
-      const hJob = (function(){ const h = window.location.hash.replace('#',''); return new URLSearchParams(h).get('job'); })();
-      const rawJob = qJob || hJob;
-      if (rawJob && !window._paymentSuccess) {
+      if (window._paymentSuccess) return;
+      const rawJob = new URLSearchParams(window.location.search).get('job');
+      if (rawJob) {
         showPage('services');
         setTimeout(() => {
           const jobInput = document.getElementById('t-job');
@@ -960,7 +956,6 @@
             if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
           }
           window.history.replaceState({}, '', window.location.pathname);
-          window.location.hash = '';
         }, 150);
       }
     })();
