@@ -650,36 +650,49 @@
     // Handle Stripe redirect back after payment
     (function(){
       const params = new URLSearchParams(window.location.search);
-      if (params.get('payment') === 'success') {
-        const job    = params.get('job')    || '';
-        const amount = params.get('amount') || '';
-        // navigate to services page first
-        showPage('services');
-        // wait for page to render then show success
-        setTimeout(() => {
-          // clean URL after reading params
-          window.history.replaceState({}, '', window.location.pathname);
-          const qBox      = document.getElementById('r-quotation-box');
-          const successBox= document.getElementById('r-success-box');
-          const paymentBox= document.getElementById('payment-box-inner');
-          const declinedBox=document.getElementById('declined-box');
-          if (qBox)        { qBox.style.display        = 'block'; }
-          if (paymentBox)  { paymentBox.style.display  = 'none';  }
-          if (declinedBox) { declinedBox.style.display = 'none';  }
-          if (successBox)  {
-            successBox.style.display = 'block';
-            const sJob = document.getElementById('s-job');
-            const sAmt = document.getElementById('s-amount');
-            const sRef = document.getElementById('s-ref');
-            if (sJob) sJob.textContent = job;
-            if (sAmt) sAmt.textContent = 'SGD ' + parseFloat(amount).toFixed(2);
-            if (sRef) sRef.textContent = job;
-          }
-          // scroll to success box
-          setTimeout(() => {
-            if (successBox) successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 200);
-        }, 300);
+      if (params.get('payment') !== 'success') return;
+      const job    = params.get('job')    || '';
+      const amount = params.get('amount') || '';
+
+      function showSuccess() {
+        // show services page
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+        const pg  = document.getElementById('page-services');
+        const nav = document.getElementById('nav-services');
+        if (pg)  pg.classList.add('active');
+        if (nav) nav.classList.add('active');
+
+        // show success box
+        const qBox       = document.getElementById('r-quotation-box');
+        const successBox = document.getElementById('r-success-box');
+        const paymentBox = document.getElementById('payment-box-inner');
+        const declinedBox= document.getElementById('declined-box');
+
+        if (qBox)        qBox.setAttribute('style', 'display:block !important');
+        if (paymentBox)  paymentBox.setAttribute('style', 'display:none !important');
+        if (declinedBox) declinedBox.setAttribute('style', 'display:none !important');
+        if (successBox)  {
+          successBox.setAttribute('style', 'display:block !important');
+          const sJob = document.getElementById('s-job');
+          const sAmt = document.getElementById('s-amount');
+          const sRef = document.getElementById('s-ref');
+          if (sJob) sJob.textContent = job;
+          if (sAmt) sAmt.textContent = 'SGD ' + (parseFloat(amount)||0).toFixed(2);
+          if (sRef) sRef.textContent = job;
+          successBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // clean URL last
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
+      // run immediately and again after DOM settles
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showSuccess);
+      } else {
+        showSuccess();
+        setTimeout(showSuccess, 500);
       }
     })();
 
