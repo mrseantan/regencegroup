@@ -43,27 +43,40 @@ function formatSlot(time) {
   return `${h > 12 ? h - 12 : h}:${String(m).padStart(2,'0')}${h >= 12 ? 'pm' : 'am'}`;
 }
 
-function customerEmailHtml({ name, date, time, reason }) {
+function customerEmailHtml({ name, date, time, reason, bookUrl }) {
   const first       = (name || '').split(' ')[0] || 'there';
   const reasonLower = (reason || '').trim().toLowerCase();
   const isCustomerRequest = reasonLower === 'customer request';
   const isNA              = reasonLower === 'n.a.' || reasonLower === 'na' || reasonLower === 'n.a';
 
-  // Body paragraph varies by reason
-  let bodyPara = '';
-  let closingPara = '';
+  const storeWa  = process.env.TISSOT_WHATSAPP_NUMBER || '';
+  const waNumber = storeWa.replace(/\D/g,'');
 
-  if (isCustomerRequest) {
-    bodyPara    = `Dear ${first}, we have noted your cancellation and your appointment has been removed from our schedule.`;
-    closingPara = `We hope to welcome you to the Tissot Boutique on another occasion. Should you wish to make a new appointment, please visit <a href="https://regencegroup.com" style="color:#B8A06A;text-decoration:none;">regencegroup.com</a>.`;
-  } else if (isNA) {
-    bodyPara    = `Dear ${first}, your appointment at the Tissot Boutique has been cancelled.`;
-    closingPara = `We would be glad to welcome you at another time. Please visit <a href="https://regencegroup.com" style="color:#B8A06A;text-decoration:none;">regencegroup.com</a> to book a new appointment at your convenience.`;
-  } else {
-    // Specific reason provided
-    bodyPara    = `Dear ${first}, your appointment at the Tissot Boutique has been cancelled.`;
-    closingPara = `We would be glad to welcome you at another time. Please visit <a href="https://regencegroup.com" style="color:#B8A06A;text-decoration:none;">regencegroup.com</a> to book a new appointment at your convenience.`;
-  }
+  let bodyPara, rebookTitle, rebookSub, rebookCta;
+
+  const callUsRow = storeWa ? `
+          <tr><td style="padding:10px 0;color:#7A7568;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;">Call Us</td>
+              <td style="padding:10px 0;font-size:13px;"><a href="tel:${waNumber}" style="color:#B8A06A;text-decoration:none;">${storeWa}</a></td></tr>` : '';
+
+    if (isCustomerRequest) {
+      bodyPara    = `Dear ${first}, we have noted your cancellation and your appointment has been removed from our schedule.`;
+      closingPara = `We hope to welcome you to the Tissot Boutique on another occasion. Should you wish to make a new appointment, <a href="${bookUrl}" style="color:#B8A06A;text-decoration:none;">book your next visit here</a>.`;
+      rebookTitle = `We hope to welcome you<br>on another occasion.`;
+      rebookSub   = `Your next visit is just a booking away.<br>Choose a time that suits you perfectly.`;
+      rebookCta   = `Book a New Appointment`;
+    } else if (isNA) {
+      bodyPara    = `Dear ${first}, your appointment at the Tissot Boutique has been cancelled.`;
+      closingPara = `We would be glad to welcome you at another time.`;
+      rebookTitle = `Your next appointment<br>is just a moment away.`;
+      rebookSub   = `Our team looks forward to welcoming you.<br>Secure your preferred time before it is taken.`;
+      rebookCta   = `Book an Appointment`;
+    } else {
+      bodyPara    = `Dear ${first}, your appointment at the Tissot Boutique has been cancelled.`;
+      closingPara = `We would be glad to welcome you at another time.`;
+      rebookTitle = `Your next appointment<br>is just a moment away.`;
+      rebookSub   = `Our team looks forward to welcoming you.<br>Secure your preferred time before it is taken.`;
+      rebookCta   = `Book an Appointment`;
+    }
 
   const reasonRow = (!isCustomerRequest && !isNA && reason)
     ? `<div style="padding:14px 18px;background:#F5F2EC;border-left:2px solid #B8A06A;margin-bottom:20px;">
@@ -78,20 +91,24 @@ function customerEmailHtml({ name, date, time, reason }) {
       <p style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#B8A06A;margin:0 0 16px;">Tissot Boutique · Singapore</p>
       <h1 style="font-family:Georgia,serif;font-size:28px;font-weight:300;color:#1A1814;margin:0;line-height:1.2;">Your appointment has been cancelled.</h1>
     </div>
-    <div style="padding:36px 40px;">
+    <div style="padding:36px 40px 0;">
       <p style="font-size:14px;color:#3D3930;line-height:1.9;margin:0 0 24px;">${bodyPara}</p>
       <div style="padding:20px 24px;background:#F5F2EC;border:0.5px solid rgba(184,160,106,0.25);margin-bottom:24px;">
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#7A7568;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;width:38%;">Date</td>
               <td style="padding:10px 0;border-bottom:1px solid #EDE9E0;color:#1A1814;font-size:13px;">${formatDate(date)}</td></tr>
-          <tr><td style="padding:10px 0;color:#7A7568;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;">Time</td>
-              <td style="padding:10px 0;color:#1A1814;font-size:13px;">${formatSlot(time)}</td></tr>
+          <tr><td style="padding:10px 0;${isNA && storeWa ? 'border-bottom:1px solid #EDE9E0;' : ''}color:#7A7568;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;">Time</td>
+              <td style="padding:10px 0;${isNA && storeWa ? 'border-bottom:1px solid #EDE9E0;' : ''}color:#1A1814;font-size:13px;">${formatSlot(time)}</td></tr>
+          ${isNA ? callUsRow : ''}
         </table>
       </div>
       ${reasonRow}
-      <div style="padding:14px 18px;background:#F5F2EC;border-left:2px solid #B8A06A;">
-        <p style="font-size:13px;color:#7A7568;line-height:1.85;margin:0;">${closingPara}</p>
-      </div>
+    </div>
+    <div style="padding:28px 40px;background:#1A1814;text-align:center;">
+      <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#B8A06A;margin:0 0 10px;">Reserve Your Visit</p>
+      <p style="font-family:Georgia,serif;font-size:22px;font-weight:300;color:#FDFCFA;margin:0 0 8px;line-height:1.3;">${rebookTitle}</p>
+      <p style="font-size:12px;color:rgba(253,252,250,0.6);line-height:1.75;margin:0 0 20px;">${rebookSub}</p>
+      <a href="${bookUrl}" style="display:inline-block;padding:12px 32px;border:0.5px solid #B8A06A;color:#B8A06A;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">${rebookCta}</a>
     </div>
     <div style="padding:24px 40px;background:#F5F2EC;border-top:1px solid #EDE9E0;">
       <p style="font-family:Georgia,serif;font-size:13px;color:#1A1814;margin:0 0 4px;">Tissot Boutique · Regence Group</p>
@@ -153,7 +170,8 @@ exports.handler = async function(event) {
     return { statusCode: 400, headers: HEADERS, body: JSON.stringify({ error: 'Missing required fields' }) };
   }
 
-  const TEAM_EMAIL = process.env.NOTIFY_EMAIL;
+  const siteUrl  = process.env.SITE_URL || 'regencegroup.com';
+  const bookUrl  = `https://${siteUrl}/?book=1`;
   const TEAM_WA    = process.env.NOTIFY_WHATSAPP_TEAM;
   const MGR_WA     = process.env.NOTIFY_WHATSAPP_MANAGER;
 
@@ -163,7 +181,7 @@ exports.handler = async function(event) {
       await sendEmail(
         email,
         `Your Tissot Boutique appointment has been cancelled — ${formatDate(date)}`,
-        customerEmailHtml({ name, date, time, reason })
+        customerEmailHtml({ name, date, time, reason, bookUrl })
       );
     }
 
