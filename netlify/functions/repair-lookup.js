@@ -94,7 +94,7 @@ exports.handler = async function(event) {
         const cleanAmt = quotationAmt.replace(/[^0-9.]/g, '').trim();
         const amountCents = Math.round(parseFloat(cleanAmt) * 100);
         const siteUrl = process.env.SITE_URL || 'regencegroup.com';
-        const successUrl = `https://${siteUrl}/?payment=success&job=${encodeURIComponent(match[1] || jobNumber)}&amount=${encodeURIComponent(cleanAmt)}`;
+        const successUrl = `https://${siteUrl}/`; // job data stored in localStorage before redirect
         const cancelUrl  = `https://${siteUrl}/?job=${encodeURIComponent(match[1] || jobNumber)}`;
         console.log(`Amount cents: ${amountCents}, successUrl: ${successUrl}`);
         if (amountCents > 0) {

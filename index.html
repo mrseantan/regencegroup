@@ -626,12 +626,24 @@
   </div>
 
   <script>
-    // ── READ PAYMENT RESULT FROM URL — read immediately before anything clears it ──
+    // ── READ PAYMENT RESULT FROM localStorage ──
     (function(){
-      const hp = new URLSearchParams(window.location.search);
-      window._paymentSuccess       = hp.get('payment') === 'success';
-      window._paymentSuccessJob    = hp.get('job')    || '';
-      window._paymentSuccessAmount = hp.get('amount') || '';
+      try {
+        const ps = localStorage.getItem('_paymentSuccess');
+        if (ps) {
+          const data = JSON.parse(ps);
+          window._paymentSuccess       = true;
+          window._paymentSuccessJob    = data.job    || '';
+          window._paymentSuccessAmount = data.amount || '';
+          localStorage.removeItem('_paymentSuccess');
+        } else {
+          window._paymentSuccess = false;
+          window._paymentSuccessJob = '';
+          window._paymentSuccessAmount = '';
+        }
+      } catch(e) {
+        window._paymentSuccess = false;
+      }
     })();
 
     // ── PAGE NAVIGATION ──
@@ -890,10 +902,20 @@
     }
 
     // ── DECLINE QUOTATION ──
-    // Open payment link
+    // Open payment link — store job data in localStorage first so success page can read it
     var _paymentUrl = null;
     function openPaymentLink(){
-      if(_paymentUrl) window.open(_paymentUrl, '_blank');
+      if(_paymentUrl && window._currentJob) {
+        try {
+          localStorage.setItem('_paymentSuccess', JSON.stringify({
+            job:    window._currentJob.jobNumber    || '',
+            amount: window._currentJob.quotationAmount || ''
+          }));
+        } catch(e) {}
+        window.location.href = _paymentUrl;
+      } else if (_paymentUrl) {
+        window.location.href = _paymentUrl;
+      }
     }
 
     function showDeclineConfirm(){ document.getElementById('confirm-overlay').classList.add('visible'); }
