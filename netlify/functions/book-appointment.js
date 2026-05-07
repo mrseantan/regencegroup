@@ -237,7 +237,11 @@ exports.handler = async function(event) {
         body: JSON.stringify({ values: [row] })
       }
     );
-    if (!sheetRes.ok) throw new Error(`Sheet write failed: ${await sheetRes.text()}`);
+    if (!sheetRes.ok) {
+      const errText = await sheetRes.text();
+      console.error('Sheet write failed:', sheetRes.status, errText);
+      throw new Error(`Sheet write failed: ${errText}`);
+    }
 
     // Send team email
     if (TEAM_EMAIL) {
