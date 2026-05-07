@@ -626,14 +626,18 @@
   </div>
 
   <script>
+    // ── READ URL PARAMS IMMEDIATELY — must be first ──
+    window._paymentSuccess       = new URLSearchParams(window.location.search).get('payment') === 'success';
+    window._paymentSuccessJob    = new URLSearchParams(window.location.search).get('job')    || '';
+    window._paymentSuccessAmount = new URLSearchParams(window.location.search).get('amount') || '';
+
     // ── PAGE NAVIGATION ──
     // Auto-populate job number from email link e.g. ?job=TS-2025-0142
     // Do NOT fire if this is a payment success redirect
     (function(){
       const params = new URLSearchParams(window.location.search);
       const jobParam = params.get('job');
-      const isPaymentSuccess = params.get('payment') === 'success';
-      if (jobParam && !isPaymentSuccess) {
+      if (jobParam && !window._paymentSuccess) {
         showPage('services');
         setTimeout(() => {
           const jobInput = document.getElementById('t-job');
@@ -648,11 +652,7 @@
       }
     })();
 
-    // Handle Stripe redirect back after payment
-    // Stored at window level so it can fire reliably after all JS initialises
-    window._paymentSuccessJob    = new URLSearchParams(window.location.search).get('job')    || '';
-    window._paymentSuccessAmount = new URLSearchParams(window.location.search).get('amount') || '';
-    window._paymentSuccess       = new URLSearchParams(window.location.search).get('payment') === 'success';
+
 
     function showPaymentSuccess() {
       if (!window._paymentSuccess) return;
@@ -946,6 +946,7 @@
       }
     }
 
+    // ── READ URL PARAMS IMMEDIATELY — before any handler can clear them ──
     // Allow Enter key in tracker inputs
     ['t-job', 't-mobile'].forEach(id => {
       const el = document.getElementById(id);
