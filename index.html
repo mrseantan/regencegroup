@@ -697,11 +697,23 @@
         window.history.replaceState({}, '', window.location.pathname);
       }
 
-      // run once after DOM is ready
+      // run after DOM and page rendering complete
+      function tryShowSuccess() {
+        const pg = document.getElementById('page-services');
+        const resultEl = document.getElementById('t-result');
+        const successBox = document.getElementById('r-success-box');
+        // if elements exist and page is ready, run
+        if (pg && resultEl && successBox) {
+          showSuccess();
+        } else {
+          // retry until ready
+          setTimeout(tryShowSuccess, 100);
+        }
+      }
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', showSuccess);
+        document.addEventListener('DOMContentLoaded', tryShowSuccess);
       } else {
-        setTimeout(showSuccess, 100);
+        tryShowSuccess();
       }
     })();
 
