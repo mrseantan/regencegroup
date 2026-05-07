@@ -632,25 +632,7 @@
     window._paymentSuccessAmount = new URLSearchParams(window.location.search).get('amount') || '';
 
     // ── PAGE NAVIGATION ──
-    // Auto-populate job number from email link e.g. ?job=TS-2025-0142
-    // Do NOT fire if this is a payment success redirect
-    (function(){
-      const params = new URLSearchParams(window.location.search);
-      const jobParam = params.get('job');
-      if (jobParam && !window._paymentSuccess) {
-        showPage('services');
-        setTimeout(() => {
-          const jobInput = document.getElementById('t-job');
-          if (jobInput) {
-            jobInput.value = decodeURIComponent(jobParam);
-            jobInput.focus();
-            const tracker = document.querySelector('.tracker-section');
-            if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
-          }
-          window.history.replaceState({}, '', window.location.pathname);
-        }, 150);
-      }
-    })();
+
 
 
 
@@ -952,6 +934,27 @@
       const el = document.getElementById(id);
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') checkRepair(); });
     });
+
+    // Auto-populate job number from email link — must be after showPage is defined
+    (function(){
+      const jobParam = window._paymentSuccessJob && !window._paymentSuccess
+        ? null  // don't use job param if this is a payment success
+        : null;
+      const rawJob = new URLSearchParams(window.location.search).get('job');
+      if (rawJob && !window._paymentSuccess) {
+        showPage('services');
+        setTimeout(() => {
+          const jobInput = document.getElementById('t-job');
+          if (jobInput) {
+            jobInput.value = decodeURIComponent(rawJob);
+            jobInput.focus();
+            const tracker = document.querySelector('.tracker-section');
+            if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
+          }
+          window.history.replaceState({}, '', window.location.pathname);
+        }, 150);
+      }
+    })();
 
     // Fire payment success — called last so all DOM and functions are ready
     showPaymentSuccess();
