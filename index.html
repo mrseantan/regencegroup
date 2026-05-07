@@ -964,8 +964,10 @@
       }
     })();
 
-    // Fire payment success — called last so all DOM and functions are ready
-    showPaymentSuccess();
+    // Fire payment success — delay to ensure full render
+    if (window._paymentSuccess) {
+      setTimeout(showPaymentSuccess, 800);
+    }
   </script>
 
   <!-- decline confirm modal — at body level so fixed positioning works correctly -->
