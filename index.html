@@ -670,6 +670,9 @@
         const paymentBox = document.getElementById('payment-box-inner');
         const declinedBox= document.getElementById('declined-box');
 
+        // also show the tracker result container which is hidden by default
+        const resultEl = document.getElementById('t-result');
+        if (resultEl) resultEl.classList.add('visible');
         if (qBox)        qBox.setAttribute('style', 'display:block !important');
         if (paymentBox)  paymentBox.setAttribute('style', 'display:none !important');
         if (declinedBox) declinedBox.setAttribute('style', 'display:none !important');
