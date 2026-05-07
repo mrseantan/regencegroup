@@ -221,6 +221,11 @@ exports.handler = async function(event) {
   const MGR_WA     = process.env.NOTIFY_WHATSAPP_MANAGER;
   const SITE_URL   = process.env.SITE_URL || 'regencegroup.com';
 
+  if (!SHEET_ID) {
+    console.error('Missing SHEET_ID_TISSOT_APPOINTMENTS env var');
+    return { statusCode: 500, headers: HEADERS, body: JSON.stringify({ error: 'Missing sheet configuration' }) };
+  }
+
   try {
     // Generate unique booking ID
     const bookingId = `APT-${Date.now()}-${Math.random().toString(36).slice(2,7).toUpperCase()}`;
