@@ -96,7 +96,7 @@ function customerEmailHtml({ name, date, time, cancelUrl }) {
   const first = (name || '').split(' ')[0] || 'there';
   const storeWa = process.env.TISSOT_WHATSAPP_NUMBER || '';
   const waNumber = storeWa.replace(/\D/g,'');
-  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=10+Paya+Lebar+Road+PLQ+Mall+Singapore+409057';
+  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=Tissot+%2301-27+PLQ+Mall+10+Paya+Lebar+Road+Singapore+409057';
   return `
   <div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;background:#FDFCFA;border:1px solid #EDE9E0;">
     <div style="height:3px;background:linear-gradient(90deg,#B8A06A,#D4BC8A,#B8A06A);"></div>
@@ -152,7 +152,7 @@ function teamWhatsApp({ name, phone, date, time, purpose, watchModel }) {
   ].join('\n');
 }
 
-function customerWhatsApp({ name, date, time }) {
+function customerWhatsApp({ name, date, time, cancelUrl }) {
   const first = (name || '').split(' ')[0] || 'there';
   return [
     `Dear ${first},`,
@@ -168,6 +168,8 @@ function customerWhatsApp({ name, date, time }) {
     `    Daily · 11:00am – 9:30pm`,
     ``,
     `We look forward to welcoming you.`,
+    ``,
+    `To cancel your appointment: ${cancelUrl}`,
     ``,
     `Regence Group`
   ].join('\n');
@@ -266,7 +268,7 @@ exports.handler = async function(event) {
     ]);
 
     // Customer WhatsApp
-    if (phone) await sendWhatsApp(phone, customerWhatsApp({ name, date, time }));
+    if (phone) await sendWhatsApp(phone, customerWhatsApp({ name, date, time, cancelUrl }));
 
     return { statusCode: 200, headers: HEADERS, body: JSON.stringify({ ok: true }) };
 
