@@ -413,8 +413,30 @@ function onAppointmentReasonSelected(e) {
     return;
   }
 
-  const date  = String(rowData[0] || '').trim();
-  const time  = String(rowData[1] || '').trim();
+  const rawDate = rowData[0];
+  const rawTime = rowData[1];
+
+  // Google Sheets stores dates as Date objects — format to YYYY-MM-DD
+  let date = '';
+  if (rawDate instanceof Date && !isNaN(rawDate)) {
+    const y = rawDate.getFullYear();
+    const m = String(rawDate.getMonth() + 1).padStart(2, '0');
+    const d = String(rawDate.getDate()).padStart(2, '0');
+    date = `${y}-${m}-${d}`;
+  } else {
+    date = String(rawDate || '').trim();
+  }
+
+  // Time may also be a Date object — extract HH:MM
+  let time = '';
+  if (rawTime instanceof Date && !isNaN(rawTime)) {
+    const h = String(rawTime.getHours()).padStart(2, '0');
+    const mn = String(rawTime.getMinutes()).padStart(2, '0');
+    time = `${h}:${mn}`;
+  } else {
+    time = String(rawTime || '').trim();
+  }
+
   const name  = String(rowData[2] || '').trim();
   const email = String(rowData[3] || '').trim();
   const phone = String(rowData[4] || '').trim();
