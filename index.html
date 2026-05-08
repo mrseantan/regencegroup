@@ -352,7 +352,7 @@
     .booking-error.visible{display:block;}
     /* Confirm button hourglass */
     .booking-btn-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
-    #btn-confirm{position:relative;display:inline-flex;align-items:center;justify-content:center;width:200px;height:46px;padding:0;overflow:hidden;border:0.5px solid var(--ink);transition:background 0.25s,border-color 0.25s;}
+    #btn-confirm{position:relative;display:inline-flex;align-items:center;justify-content:center;width:200px;height:46px;padding:0;border:0.5px solid var(--ink);transition:background 0.25s,border-color 0.25s;}
     #btn-confirm .btn-label{position:absolute;transition:opacity 0.2s;white-space:nowrap;}
     #btn-confirm.searching{background:transparent;border-color:var(--gold);}
     #btn-confirm.searching .btn-label{opacity:0;pointer-events:none;}
@@ -1276,7 +1276,8 @@
         var c=document.getElementById(canvasId||'hg-canvas');
         if(!c) return;
         var cx=c.getContext('2d');
-        var CW=20,CH=28,MX=CW/2,T=2.2,N=CH/2,B=CH-2,NW=0.6,EW=8;
+        var CW=c.width,CH=c.height,PAD=2;
+        var MX=CW/2,T=PAD,N=CH/2,B=CH-PAD,NW=0.6,EW=CW/2-PAD;
         function lw(y){var t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX-(NW+t*(EW-NW));}
         function rw(y){var t=y<=N?(N-y)/(N-T):(y-N)/(B-N);return MX+(NW+t*(EW-NW));}
         var topFill=0.6,botFill=0.0,drips=[],phase='drain',phaseTimer=0,drainTimer=0,animId;
@@ -1287,8 +1288,8 @@
         function draw(){
           cx.clearRect(0,0,CW,CH);
           cx.fillStyle='#D4BC8A';
-          cx.beginPath();cx.roundRect(0,0,CW,1.4,0.7);cx.fill();
-          cx.beginPath();cx.roundRect(0,CH-1.4,CW,1.4,0.7);cx.fill();
+          cx.beginPath();cx.roundRect(PAD,0,CW-PAD*2,1.4,0.7);cx.fill();
+          cx.beginPath();cx.roundRect(PAD,CH-1.4,CW-PAD*2,1.4,0.7);cx.fill();
           cx.strokeStyle='rgba(184,160,106,0.45)';cx.lineWidth=0.45;
           cx.beginPath();cx.moveTo(lw(T),T);cx.lineTo(lw(N),N);cx.lineTo(lw(B),B);cx.stroke();
           cx.beginPath();cx.moveTo(rw(T),T);cx.lineTo(rw(N),N);cx.lineTo(rw(B),B);cx.stroke();
@@ -1709,7 +1710,7 @@
             <p class="booking-error" id="confirm-error">Something went wrong. Please try again.</p>
             <div class="booking-nav">
               <button class="booking-back" onclick="bkGoStep(3,4)">Back</button>
-              <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()"><span class="btn-label">Confirm Appointment</span><canvas id="bk-hg-canvas" width="12" height="17"></canvas></button>
+              <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()"><span class="btn-label">Confirm Appointment</span><canvas id="bk-hg-canvas" width="16" height="24"></canvas></button>
             </div>
           </div>
 
