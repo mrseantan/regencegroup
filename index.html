@@ -203,10 +203,11 @@
     .info-block:first-child { padding-top: 0; }
     .info-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
     .info-value { font-size: 15px; color: var(--ink-mid); line-height: 1.7; }
-    .form-success { display: none; padding: 24px; background: var(--warm); border: 0.5px solid var(--border); text-align: center; }
+    .form-success { display: none; text-align: center; padding: 60px 24px; background: var(--warm); border: 0.5px solid var(--border); }
     .form-success.visible { display: block; }
-    .form-success h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; margin-bottom: 8px; }
-    .form-success p { font-size: 14px; color: var(--muted); }
+    .form-success-line { width: 48px; height: 1px; background: var(--gold); margin: 0 auto 28px; }
+    .form-success h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 300; color: var(--ink); margin-bottom: 14px; line-height: 1.2; }
+    .form-success p { font-size: 14px; color: var(--muted); line-height: 1.85; }
     .payment-success-banner { display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 200; background: #2D6A4F; color: #fff; padding: 16px 48px; text-align: center; font-family: 'Jost', sans-serif; font-size: 13px; letter-spacing: 0.1em; }
     .payment-success-banner.visible { display: block; }
     /* ── PAYMENT BOX ── */
@@ -731,8 +732,9 @@
         <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-family: 'Jost', sans-serif; cursor: pointer;">Send Enquiry</button>
       </form>
       <div class="form-success" id="form-success">
-        <h3>Thank you for your enquiry.</h3>
-        <p>A member of the Regence Group team will be in touch shortly.</p>
+        <div class="form-success-line"></div>
+        <h3>Thank you for reaching out.</h3>
+        <p>A member of our team will be in touch shortly.</p>
       </div>
       <div>
         <div class="info-block"><p class="info-label">Headquarters</p><p class="info-value">Regence Group<br>Southeast Asia</p></div>
