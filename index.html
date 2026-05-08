@@ -1320,6 +1320,17 @@
         p.style.cssText = '';
       });
       document.getElementById('panel-1').classList.add('active');
+      // Reset confirm button
+      var confirmBtn = document.getElementById('btn-confirm');
+      if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.classList.remove('searching'); }
+      // Clear form fields
+      ['bk-name','bk-email','bk-phone','bk-purpose','bk-model'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.value = '';
+      });
+      var consent = document.getElementById('bk-consent'); if(consent) consent.checked = false;
+      var cWrap = document.getElementById('bk-consent-wrap'); if(cWrap) cWrap.classList.remove('consent-error');
+      var errD = document.getElementById('details-error'); if(errD) errD.classList.remove('visible');
+      var errC = document.getElementById('confirm-error'); if(errC) errC.classList.remove('visible');
       ['tab-1','tab-2','tab-3','tab-4'].forEach(function(id,i){
         var t = document.getElementById(id);
         t.classList.remove('active','done');
@@ -1340,9 +1351,10 @@
     }
 
     function bkGoStep(to, from){
-      var fromEl = document.getElementById('panel-' + (from || bkState.step));
+      var currentStep = from !== undefined ? from : bkState.step;
+      var fromEl = document.getElementById(currentStep === 5 ? 'panel-success' : 'panel-' + currentStep);
       var toEl   = document.getElementById(to === 5 ? 'panel-success' : 'panel-' + to);
-      var forward = to > bkState.step;
+      var forward = to > currentStep;
       bkState.step = to;
 
       // Fade out current
