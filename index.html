@@ -1323,14 +1323,20 @@
       // Reset confirm button
       var confirmBtn = document.getElementById('btn-confirm');
       if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.classList.remove('searching'); }
-      // Clear form fields
-      ['bk-name','bk-email','bk-phone','bk-purpose','bk-model'].forEach(function(id){
-        var el = document.getElementById(id); if(el) el.value = '';
-      });
       var consent = document.getElementById('bk-consent'); if(consent) consent.checked = false;
       var cWrap = document.getElementById('bk-consent-wrap'); if(cWrap) cWrap.classList.remove('consent-error');
       var errD = document.getElementById('details-error'); if(errD) errD.classList.remove('visible');
       var errC = document.getElementById('confirm-error'); if(errC) errC.classList.remove('visible');
+      // Clear purpose and model but pre-fill saved name/email/phone
+      var purposeEl = document.getElementById('bk-purpose'); if(purposeEl) purposeEl.value = '';
+      var modelEl   = document.getElementById('bk-model');   if(modelEl)   modelEl.value   = '';
+      try {
+        var n = localStorage.getItem('bk_name'),  e = localStorage.getItem('bk_email'), p = localStorage.getItem('bk_phone');
+        var nEl = document.getElementById('bk-name'), eEl = document.getElementById('bk-email'), pEl = document.getElementById('bk-phone');
+        if(nEl) nEl.value = n || '';
+        if(eEl) eEl.value = e || '';
+        if(pEl) pEl.value = p || '';
+      } catch(err) {}
       ['tab-1','tab-2','tab-3','tab-4'].forEach(function(id,i){
         var t = document.getElementById(id);
         t.classList.remove('active','done');
@@ -1552,6 +1558,12 @@
         });
         var data = await res.json();
         if(!res.ok) throw new Error(data.error||'Failed');
+        // Save customer details for next time
+        try {
+          localStorage.setItem('bk_name',  document.getElementById('bk-name').value);
+          localStorage.setItem('bk_email', document.getElementById('bk-email').value);
+          localStorage.setItem('bk_phone', document.getElementById('bk-phone').value);
+        } catch(e) {}
         btn.classList.remove('searching');
         if(window.stopHourglass) stopHourglass('bk-hg-canvas');
         // Show success with details
@@ -1659,7 +1671,7 @@
             </div>
             <p class="booking-error" id="details-error">Please fill in all required fields and give your consent to proceed.</p>
             <div class="booking-nav">
-              <button class="booking-back" onclick="bkGoStep(3,2)">Back</button>
+              <button class="booking-back" onclick="bkGoStep(2,3)">Back</button>
               <button class="btn btn-primary" onclick="validateDetails()">Review Booking</button>
             </div>
           </div>
@@ -1670,7 +1682,7 @@
             <p style="font-size:13px;color:var(--muted);line-height:1.85;margin-bottom:24px;">We look forward to welcoming you. A confirmation with a cancellation link will be sent to your email and WhatsApp upon booking.</p>
             <p class="booking-error" id="confirm-error">Something went wrong. Please try again.</p>
             <div class="booking-nav">
-              <button class="booking-back" onclick="bkGoStep(4,3)">Back</button>
+              <button class="booking-back" onclick="bkGoStep(3,4)">Back</button>
               <button class="btn btn-primary" id="btn-confirm" onclick="submitBooking()"><span class="btn-label">Confirm Appointment</span><canvas id="bk-hg-canvas" width="14" height="20"></canvas></button>
             </div>
           </div>
