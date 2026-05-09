@@ -102,6 +102,7 @@ exports.handler = async function(event) {
       let paymentLink = null;
       if (status.toLowerCase() === 'quotation; pending payment' && quotationAmount >= 0.5) {
         try {
+          console.log('Repair Stripe attempt - amount:', quotationAmount, 'status:', status, 'brand:', brand, 'SITE_URL:', process.env.SITE_URL);
           paymentLink = await createStripeSession({
             amount:      quotationAmount,
             description: `Watch Repair — Job ${jobNum}`,
