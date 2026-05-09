@@ -293,6 +293,17 @@
     .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
     .footer-logo span { color: var(--gold); }
     .footer-text { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; }
+
+    /* ── ORDER RESULT ── */
+    .order-result { margin-top: 32px; background: var(--white); border: 0.5px solid var(--border); display: none; overflow: hidden; }
+    .order-result.visible { display: block; }
+    .order-result-bar { height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold)); }
+    .order-status-badge { display: inline-block; padding: 3px 12px; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; border: 0.5px solid; margin-top: 4px; }
+    .order-status-pending   { color: #8C7245; border-color: rgba(140,114,69,0.4); background: rgba(140,114,69,0.06); }
+    .order-status-processed { color: #2D5C3A; border-color: rgba(45,92,58,0.4);  background: rgba(45,92,58,0.06); }
+    .order-status-ready     { color: var(--ink); border-color: var(--border-strong); }
+    .order-status-collected { color: var(--muted); border-color: var(--border); }
+
     /* ── BOOKING OVERLAY ── */
     .booking-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,24,20,0.7);display:none;align-items:center;justify-content:center;padding:24px;}
     .booking-overlay.open{display:flex;}
@@ -535,6 +546,111 @@
           <button class="tracker-btn" id="t-btn" onclick="checkRepair()"><span class="btn-label">Track</span><canvas id="hg-canvas" width="20" height="28"></canvas></button>
         </div>
         <div class="tracker-error" id="t-error"></div>
+
+        <!-- ORDER RESULT -->
+        <div class="order-result" id="order-result">
+          <div class="order-result-bar"></div>
+          <div class="result-header">
+            <div class="result-field">
+              <div class="result-field-label">Order No.</div>
+              <div class="result-field-value" id="o-orderno">—</div>
+            </div>
+            <div class="result-field">
+              <div class="result-field-label">Customer</div>
+              <div class="result-field-value" id="o-name">—</div>
+            </div>
+            <div class="result-field" style="text-align:right;">
+              <div class="result-field-label">Status</div>
+              <div id="o-status-badge">—</div>
+            </div>
+          </div>
+          <div class="status-detail">
+            <div class="status-eyebrow">Order Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:0.5px solid var(--border);margin-bottom:16px;">
+              <div style="padding:12px 20px;border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
+                <div class="result-field-label">Brand</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-brand">—</div>
+              </div>
+              <div style="padding:12px 20px;border-bottom:0.5px solid var(--border);">
+                <div class="result-field-label">Item</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-item">—</div>
+              </div>
+              <div style="padding:12px 20px;border-right:0.5px solid var(--border);">
+                <div class="result-field-label">Quote Date</div>
+                <div style="font-size:14px;color:var(--ink-mid);" id="o-date">—</div>
+              </div>
+              <div style="padding:12px 20px;">
+                <div class="result-field-label">Amount</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold-dark);" id="o-quote">—</div>
+              </div>
+            </div>
+            <!-- Payment box -->
+            <div id="o-payment-section" style="display:none;">
+              <div class="payment-box">
+                <div class="payment-header">
+                  <p class="payment-eyebrow">Payment Request</p>
+                  <div class="payment-amount-row">
+                    <span class="payment-currency">SGD</span>
+                    <span class="payment-amount" id="o-pay-amount">—</span>
+                  </div>
+                  <p class="payment-ref" id="o-pay-ref">—</p>
+                </div>
+                <div class="payment-body">
+                  <p class="payment-note">To complete your order, please proceed with payment below. <strong>All payments are strictly non-refundable.</strong></p>
+                  <div class="cta-wrap">
+                    <span class="cta-badge">Secure Payment</span>
+                    <div id="o-payment-btn" onclick="openOrderPaymentLink()" style="display:block;width:100%;padding:18px 16px;background:#1A1814;color:#FDFCFA;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:'Jost',sans-serif;box-sizing:border-box;">Proceed to Payment</div>
+                  </div>
+                  <div class="trust-row">
+                    <div class="trust-item"><div class="trust-dot"></div><span>256-bit encrypted</span></div>
+                    <div class="trust-item"><div class="trust-dot"></div><span>Powered by Stripe</span></div>
+                    <div class="trust-item"><div class="trust-dot"></div><span>SGD only</span></div>
+                  </div>
+                  <div class="payment-divider"><span>or scan to pay on mobile</span></div>
+                  <div class="payment-qr">
+                    <div id="o-qr-code"></div>
+                    <p class="payment-qr-label">Scan with your phone camera</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Order success box -->
+            <div class="success-box" id="o-success-box" style="display:none;">
+              <div class="success-bar"></div>
+              <div class="success-header">
+                <div class="success-icon">✓</div>
+                <p class="success-eyebrow">Payment Confirmed</p>
+                <h2 class="success-title">Your order has been placed.</h2>
+                <p class="success-sub">Thank you. We will notify you when your order is ready for collection.</p>
+              </div>
+              <div class="success-summary">
+                <div class="summary-row"><span class="summary-label">Order No.</span><span class="summary-value" id="os-orderno">—</span></div>
+                <div class="summary-row"><span class="summary-label">Amount Paid</span><span class="summary-value gold" id="os-amount">—</span></div>
+                <div class="summary-row"><span class="summary-label">Status</span><span class="summary-value" style="font-size:14px;">Order Processed</span></div>
+              </div>
+              <div class="success-next">
+                <p class="next-label">What happens next</p>
+                <div class="next-item"><span class="next-num">1</span><p class="next-text"><strong>Your order is being processed.</strong> We will notify you when it is ready for collection.</p></div>
+                <div class="next-item"><span class="next-num">2</span><p class="next-text"><strong>You will be notified</strong> when your order is ready for collection at the boutique.</p></div>
+                <div class="next-item"><span class="next-num">3</span><p class="next-text">Track your order anytime by returning here with your order number and mobile number.</p></div>
+              </div>
+              <div class="success-footer">
+                <p class="success-footer-text">For any enquiries, contact us quoting order reference <strong id="os-ref">—</strong>.</p>
+                <p class="success-footer-brand">Regence<span>.</span></p>
+              </div>
+            </div>
+            <!-- Ready for collection -->
+            <div id="o-collection-box" style="display:none;">
+              <div class="collection-box">
+                <div class="collection-label">Collection Address</div>
+                <div class="collection-name">Tissot Boutique · Regence Group</div>
+                <div class="collection-address">10 Paya Lebar Road<br>#01-27 PLQ Mall<br>Singapore 409057</div>
+                <div class="collection-hours">Daily · 11:00am – 9:30pm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <div class="tracker-result" id="t-result">
           <div class="tracker-result-bar"></div>
@@ -909,7 +1025,11 @@
           return;
         }
 
-        renderResult(data);
+        if(data.type === 'order') {
+          renderOrderResult(data);
+        } else {
+          renderResult(data);
+        }
 
       } catch (e) {
         showError('Connection error. Please try again.');
@@ -1149,13 +1269,15 @@
     (function(){
       if (window._paymentSuccess) return;
       const params = new URLSearchParams(window.location.search);
-      const rawJob = params.get('job');
-      if (rawJob) {
+      const rawJob   = params.get('job');
+      const rawOrder = params.get('order');
+      const refNum   = rawJob || rawOrder;
+      if (refNum) {
         showPage('services');
         setTimeout(() => {
           const jobInput = document.getElementById('t-job');
           if (jobInput) {
-            jobInput.value = decodeURIComponent(rawJob);
+            jobInput.value = decodeURIComponent(refNum);
             jobInput.focus();
             const tracker = document.querySelector('.tracker-section');
             if (tracker) tracker.scrollIntoView({ behavior: 'smooth' });
@@ -1217,6 +1339,109 @@
         }
       })();
     }
+
+
+    // ── ORDER RESULT HANDLER ──
+    var _orderPaymentUrl = null;
+
+    function renderOrderResult(d) {
+      document.getElementById('t-result').classList.remove('visible');
+      var el = document.getElementById('order-result');
+      el.classList.add('visible');
+
+      document.getElementById('o-orderno').textContent = d.orderNo || '—';
+      document.getElementById('o-name').textContent    = d.name    || '—';
+      document.getElementById('o-brand').textContent   = d.brand   || '—';
+      document.getElementById('o-item').textContent    = d.item    || '—';
+      document.getElementById('o-date').textContent    = d.date    || '—';
+      document.getElementById('o-quote').textContent   = d.quote ? 'SGD ' + parseFloat(d.quote).toFixed(2) : '—';
+
+      var status   = (d.status || '').toLowerCase();
+      var badgeEl  = document.getElementById('o-status-badge');
+      var badgeCls = 'order-status-badge ';
+      if(status === 'quoted - pending payment')  badgeCls += 'order-status-pending';
+      else if(status === 'order processed')      badgeCls += 'order-status-processed';
+      else if(status === 'ready for collection') badgeCls += 'order-status-ready';
+      else                                       badgeCls += 'order-status-collected';
+      badgeEl.innerHTML = '<span class="' + badgeCls + '">' + (d.status || '—') + '</span>';
+
+      var paySection = document.getElementById('o-payment-section');
+      var colBox     = document.getElementById('o-collection-box');
+      var successBox = document.getElementById('o-success-box');
+      paySection.style.display = 'none';
+      colBox.style.display     = 'none';
+      successBox.style.display = 'none';
+
+      if(status === 'quoted - pending payment') {
+        paySection.style.display = 'block';
+        document.getElementById('o-pay-amount').textContent = d.quote ? parseFloat(d.quote).toFixed(2) : '—';
+        document.getElementById('o-pay-ref').textContent    = 'Order Ref · ' + (d.orderNo || '');
+        window._currentOrder = d;
+        _orderPaymentUrl     = d.paymentLink || null;
+        var qrEl  = document.getElementById('o-qr-code');
+        var payBtn = document.getElementById('o-payment-btn');
+        qrEl.innerHTML = '';
+        if(d.paymentLink) {
+          payBtn.style.display = 'block';
+          try {
+            new QRCode(qrEl, { text: d.paymentLink, width: 160, height: 160, colorDark: '#1A1814', colorLight: '#FDFCFA', correctLevel: QRCode.CorrectLevel.M });
+          } catch(e) {
+            qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);">QR unavailable — use the button above.</p>';
+          }
+        } else {
+          payBtn.style.display = 'none';
+          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7;padding:8px 0;">Payment link is being prepared. Please refresh in a moment or contact us quoting your order number.</p>';
+        }
+      } else if(status === 'ready for collection') {
+        colBox.style.display = 'block';
+      }
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function openOrderPaymentLink() {
+      if(_orderPaymentUrl && window._currentOrder) {
+        try {
+          localStorage.setItem('_orderPaymentSuccess', JSON.stringify({
+            orderNo: window._currentOrder.orderNo || '',
+            amount:  window._currentOrder.quote   || ''
+          }));
+        } catch(e) {}
+        window.location.href = _orderPaymentUrl;
+      }
+    }
+
+    // Handle order payment success redirect
+    (function(){
+      try {
+        var ps = localStorage.getItem('_orderPaymentSuccess');
+        if(ps) {
+          var data = JSON.parse(ps);
+          localStorage.removeItem('_orderPaymentSuccess');
+          if(data.orderNo) {
+            showPage('services');
+            setTimeout(function(){
+              var el = document.getElementById('order-result');
+              el.classList.add('visible');
+              document.getElementById('o-orderno').textContent  = data.orderNo;
+              document.getElementById('o-name').textContent     = '';
+              document.getElementById('o-brand').textContent    = '';
+              document.getElementById('o-item').textContent     = '';
+              document.getElementById('o-date').textContent     = '';
+              document.getElementById('o-quote').textContent    = data.amount ? 'SGD ' + parseFloat(data.amount).toFixed(2) : '';
+              document.getElementById('o-status-badge').innerHTML = '<span class="order-status-badge order-status-processed">Order Processed</span>';
+              document.getElementById('o-payment-section').style.display = 'none';
+              var sb = document.getElementById('o-success-box');
+              sb.style.display = 'block';
+              document.getElementById('os-orderno').textContent = data.orderNo;
+              document.getElementById('os-amount').textContent  = data.amount ? 'SGD ' + parseFloat(data.amount).toFixed(2) : '—';
+              document.getElementById('os-ref').textContent     = data.orderNo;
+              setTimeout(function(){ sb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+            }, 150);
+          }
+        }
+      } catch(e) {}
+    })();
 
     // ── HOURGLASS ANIMATION ──
     (function(){
