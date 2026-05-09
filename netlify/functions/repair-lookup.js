@@ -124,6 +124,7 @@ exports.handler = async function(event) {
         }
       }
 
+      console.log('Returning repair result for job:', jobNum);
       return {
         statusCode: 200,
         headers: HEADERS,
