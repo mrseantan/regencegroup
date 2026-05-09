@@ -39,7 +39,6 @@ async function createStripeSession({ amount, description, successUrl, cancelUrl,
     'mode':                                    'payment',
     'success_url':                             successUrl,
     'cancel_url':                              cancelUrl,
-    'expires_at':                              Math.floor(Date.now() / 1000) + 3600,
   });
 
   // Add metadata
@@ -52,6 +51,7 @@ async function createStripeSession({ amount, description, successUrl, cancelUrl,
     body:    params.toString()
   });
   const data = await res.json();
+  console.log('Stripe session response:', res.status, data.url ? 'has URL' : 'no URL', data.error?.message || '');
   if (!res.ok) throw new Error(data.error?.message || 'Stripe session creation failed');
   return data.url;
 }
