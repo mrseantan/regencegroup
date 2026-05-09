@@ -1026,7 +1026,6 @@
           return;
         }
 
-        console.log('Lookup response type:', data.type, 'paymentLink:', !!data.paymentLink, 'quotationAmount:', data.quotationAmount, 'status:', data.status);
         if(data.type === 'order') {
           document.getElementById('t-result').classList.remove('visible');
           renderOrderResult(data);
@@ -1127,7 +1126,7 @@
       // Quotation + payment box
       const qBox = document.getElementById('r-quotation-box');
       if (sInfo.showQuote && d.quotationAmount) {
-        const amtClean = d.quotationAmount.replace(/[^0-9.]/g, '');
+        const amtClean = String(d.quotationAmount).replace(/[^0-9.]/g, '');
         document.getElementById('r-amount').textContent = amtClean;
         const refEl = document.getElementById('r-payment-ref');
         if (refEl) refEl.textContent = 'Job Ref · ' + (d.jobNumber || '');
