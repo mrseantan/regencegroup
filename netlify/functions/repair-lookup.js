@@ -164,22 +164,22 @@ exports.handler = async function(event) {
     const oRows     = (orderData.values || []).slice(1);
 
     const oMatch = oRows.find(r => {
-      const rowOrder  = (r[0] || '').trim().toUpperCase();
+      const rowOrder   = (r[0] || '').trim().toUpperCase();
       const inputOrder = jobNumber.trim().toUpperCase();
       if (rowOrder !== inputOrder) return false;
-      const phone = (r[6] || '').replace(/\D/g, '');
+      const phone = (r[3] || '').replace(/\D/g, '');
       return phone.slice(-4) === mobileLast4.trim();
     });
 
     if (oMatch) {
-      const status       = (oMatch[8] || '').trim();
-      const quote        = parseFloat((oMatch[4] || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+      const status       = (oMatch[7] || '').trim();
+      const quote        = 0; // quote not surfaced publicly
       const orderNo      = (oMatch[0] || '').trim();
-      const name         = (oMatch[5] || '').trim();
-      const email        = (oMatch[7] || '').trim();
-      const phone        = (oMatch[6] || '').trim();
-      const brand        = (oMatch[2] || '').trim();
-      const item         = (oMatch[3] || '').trim();
+      const name         = (oMatch[2] || '').trim();
+      const email        = (oMatch[4] || '').trim();
+      const phone        = (oMatch[3] || '').trim();
+      const brand        = (oMatch[5] || '').trim();
+      const item         = (oMatch[6] || '').trim();
       const rowIndex     = oRows.indexOf(oMatch) + 2;
 
       let paymentLink = null;
