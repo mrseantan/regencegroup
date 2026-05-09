@@ -102,7 +102,7 @@
     .service-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; margin-bottom: 12px; }
     .service-text { font-size: 14px; color: var(--muted); line-height: 1.8; }
 
-    /* ── REPAIR TRACKER ── */
+    /* ── SERVICE TRACKER ── */
     .tracker-section { background: var(--warm); padding: 64px 48px; }
     .tracker-box { max-width: 560px; margin: 0 auto; }
     .tracker-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; margin-bottom: 8px; text-align: center; }
@@ -533,15 +533,14 @@
       <div class="service-block"><div class="service-icon"></div><h3 class="service-title">Market Development</h3><p class="service-text">From retailer onboarding to co-marketing initiatives, we provide the tools and expertise brands need to grow meaningfully across Southeast Asia and the Indian Ocean Region.</p></div>
     </div>
 
-    <!-- REPAIR TRACKER -->
+    <!-- SERVICE TRACKER -->
     <div class="tracker-section" style="margin-top: 2px;">
       <div class="tracker-box">
-        <p class="section-label" style="text-align: center;">Repair Tracker</p>
-        <h2 class="tracker-title">Track Your Repair</h2>
-        <p class="tracker-sub">Enter your repair job number and the last 4 digits of your registered mobile number.</p>
+        <h2 class="tracker-title" style="color:var(--gold-dark);">Service Tracker</h2>
+        <p class="tracker-sub">Enter your reference number and the last 4 digits of your registered mobile number.</p>
 
         <div class="tracker-row">
-          <input class="tracker-input" id="t-job" placeholder="Repair Job No." style="flex: 1.4;" />
+          <input class="tracker-input" id="t-job" placeholder="Reference Number" style="flex: 1.4;" />
           <input class="tracker-input" id="t-mobile" placeholder="Last 4 digits of mobile" maxlength="4" inputmode="numeric" style="flex: 1; border-left: none;" />
           <button class="tracker-btn" id="t-btn" onclick="checkRepair()"><span class="btn-label">Track</span><canvas id="hg-canvas" width="20" height="28"></canvas></button>
         </div>
@@ -550,6 +549,8 @@
         <!-- ORDER RESULT -->
         <div class="order-result" id="order-result">
           <div class="order-result-bar"></div>
+
+          <!-- Header -->
           <div class="result-header">
             <div class="result-field">
               <div class="result-field-label">Order No.</div>
@@ -560,28 +561,48 @@
               <div class="result-field-value" id="o-name">—</div>
             </div>
             <div class="result-field" style="text-align:right;">
-              <div class="result-field-label">Status</div>
-              <div id="o-status-badge">—</div>
+              <div class="result-field-label">Order Date</div>
+              <div class="result-field-value" id="o-date">—</div>
             </div>
           </div>
+
+          <!-- Progress bar (mirrors repair tracker) -->
+          <div class="progress-wrap">
+            <div class="progress-header">
+              <div class="progress-label">Order Progress</div>
+            </div>
+            <div class="progress-steps" id="o-progress-steps">
+              <div class="progress-track" id="o-progress-track"></div>
+            </div>
+          </div>
+
+          <!-- Status detail -->
           <div class="status-detail">
-            <div class="status-eyebrow">Order Details</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:0.5px solid var(--border);margin-bottom:16px;">
-              <div style="padding:12px 20px;border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
-                <div class="result-field-label">Brand</div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-brand">—</div>
+            <div class="status-eyebrow" id="o-status-eyebrow">Current Status</div>
+            <div class="status-text" id="o-status-text">—</div>
+            <div class="status-sub" id="o-status-sub"></div>
+            <div class="status-rule" id="o-status-rule" style="display:none;"></div>
+            <div class="status-notify" id="o-status-notify" style="display:none;"></div>
+
+            <!-- Order detail strip -->
+            <div id="o-detail-strip" style="border:0.5px solid var(--border);margin-top:20px;margin-bottom:4px;overflow:hidden;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;">
+                <div style="padding:12px 20px;border-right:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
+                  <div class="result-field-label">Brand</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-brand">—</div>
+                </div>
+                <div style="padding:12px 20px;border-bottom:0.5px solid var(--border);">
+                  <div class="result-field-label">Item</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-item">—</div>
+                </div>
               </div>
-              <div style="padding:12px 20px;border-bottom:0.5px solid var(--border);">
-                <div class="result-field-label">Item</div>
-                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--ink);" id="o-item">—</div>
-              </div>
-              <div style="padding:12px 20px;border-right:0.5px solid var(--border);">
-                <div class="result-field-label">Quote Date</div>
-                <div style="font-size:14px;color:var(--ink-mid);" id="o-date">—</div>
-              </div>
-              <div style="padding:12px 20px;">
+              <div id="o-quote-row" style="padding:12px 20px;border-bottom:0.5px solid var(--border);">
                 <div class="result-field-label">Amount</div>
                 <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold-dark);" id="o-quote">—</div>
+              </div>
+              <div id="o-collected-row" style="display:none;padding:12px 20px;">
+                <div class="result-field-label">Collected</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);" id="o-collected-date">—</div>
               </div>
             </div>
             <!-- Payment box -->
@@ -974,7 +995,7 @@
       });
     }
 
-    // ── REPAIR TRACKER ──
+    // ── SERVICE TRACKER ──
     const STATUSES = [
       { key: 'accepted',   label: 'Accepted',   full: 'Job accepted, pending watchmaker assessment', sub: 'Your timepiece has been received. Our watchmaker will assess it shortly.' },
       { key: 'assessed',   label: 'Assessed',   full: 'Watchmaker assessment complete', sub: 'Assessment is complete. Please see the status details below.' },
@@ -1006,7 +1027,7 @@
       resultEl.classList.remove('visible');
       document.getElementById('order-result').classList.remove('visible');
 
-      if (!jobVal) { showError('Please enter your repair job number.'); return; }
+      if (!jobVal) { showError('Please enter your reference number.'); return; }
       if (!/^\d{4}$/.test(mobileVal)) { showError('Please enter exactly 4 digits of your mobile number.'); return; }
 
       btn.disabled = true;
@@ -1347,27 +1368,125 @@
     // ── ORDER RESULT HANDLER ──
     var _orderPaymentUrl = null;
 
+    // Order status map — DHL-style 4-step progress
+    const ORDER_STATUS_MAP = {
+      'quoted - pending payment': {
+        step: 0,
+        label: 'Payment pending.',
+        sub: 'Your order has been prepared. Please review the payment request and proceed at your earliest convenience.',
+        showPayment: true,
+        hideStrip: true
+      },
+      'order processed': {
+        step: 1,
+        label: 'Your order is being processed.',
+        sub: 'Payment has been received and your order is now being prepared by our team.',
+        notify: 'We will notify you as soon as your order is ready for collection.',
+        hideAmount: true
+      },
+      'ready for collection': {
+        step: 2,
+        label: 'Your order awaits you.',
+        sub: 'Your order is ready and waiting. We look forward to welcoming you.',
+        collection: true,
+        hideAmount: true
+      },
+      'collected': {
+        step: 3,
+        label: 'Order collected.',
+        sub: 'Your order has been collected. We are delighted to have served you.',
+        notify: 'Thank you for choosing Regence Group. We look forward to welcoming you again.',
+        done: true,
+        hideAmount: true,
+        showCollectedDate: true
+      }
+    };
+
+    function buildOrderProgress(activeStep) {
+      var steps  = ['Payment', 'Processing', 'Ready', 'Collected'];
+      var wrap   = document.getElementById('o-progress-steps');
+      var track  = document.getElementById('o-progress-track');
+      if(!wrap || !track) return;
+      wrap.innerHTML = '';
+      wrap.appendChild(track);
+      steps.forEach(function(label, i) {
+        var item = document.createElement('div');
+        item.className = 'step-item';
+        var dot = document.createElement('div');
+        dot.className = 'step-dot';
+        dot.textContent = i < activeStep ? '✓' : String(i + 1);
+        if(i < activeStep)        dot.classList.add('done');
+        else if(i === activeStep) dot.classList.add('current');
+        var lbl = document.createElement('div');
+        lbl.className = 'step-label';
+        lbl.textContent = label;
+        if(i < activeStep)        lbl.classList.add('done');
+        else if(i === activeStep) lbl.classList.add('current');
+        item.appendChild(dot);
+        item.appendChild(lbl);
+        wrap.appendChild(item);
+      });
+      var pct = activeStep === 0 ? 0 : (activeStep / (steps.length - 1)) * 100;
+      setTimeout(function(){ track.style.width = pct + '%'; }, 50);
+    }
+
     function renderOrderResult(d) {
       document.getElementById('t-result').classList.remove('visible');
       var el = document.getElementById('order-result');
       el.classList.add('visible');
 
+      // Header fields
       document.getElementById('o-orderno').textContent = d.orderNo || '—';
       document.getElementById('o-name').textContent    = d.name    || '—';
-      document.getElementById('o-brand').textContent   = d.brand   || '—';
-      document.getElementById('o-item').textContent    = d.item    || '—';
-      document.getElementById('o-date').textContent    = d.date    || '—';
-      document.getElementById('o-quote').textContent   = d.quote ? 'SGD ' + parseFloat(d.quote).toFixed(2) : '—';
+      var fmtDate = d.date || '—';
+      try {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if(d.date && d.date.includes('-')) {
+          var dp = d.date.split('-');
+          fmtDate = dp[2] + ' ' + months[parseInt(dp[1])-1] + ' ' + dp[0];
+        }
+      } catch(e) {}
+      document.getElementById('o-date').textContent = fmtDate;
 
-      var status   = (d.status || '').toLowerCase();
-      var badgeEl  = document.getElementById('o-status-badge');
-      var badgeCls = 'order-status-badge ';
-      if(status === 'quoted - pending payment')  badgeCls += 'order-status-pending';
-      else if(status === 'order processed')      badgeCls += 'order-status-processed';
-      else if(status === 'ready for collection') badgeCls += 'order-status-ready';
-      else                                       badgeCls += 'order-status-collected';
-      badgeEl.innerHTML = '<span class="' + badgeCls + '">' + (d.status || '—') + '</span>';
+      // Status
+      var status = (d.status || '').trim().toLowerCase();
+      var sInfo  = ORDER_STATUS_MAP[status] || { step: 0, label: d.status || 'Pending', sub: '' };
 
+      // Progress bar
+      buildOrderProgress(sInfo.step);
+
+      // Status detail
+      document.getElementById('o-status-text').textContent = sInfo.label;
+      document.getElementById('o-status-sub').textContent  = sInfo.sub;
+
+      var notifyEl = document.getElementById('o-status-notify');
+      var ruleEl   = document.getElementById('o-status-rule');
+      if(sInfo.notify) {
+        notifyEl.textContent = sInfo.notify;
+        notifyEl.style.display = 'block';
+        ruleEl.style.display   = 'block';
+      } else {
+        notifyEl.style.display = 'none';
+        ruleEl.style.display   = 'none';
+      }
+
+      // Order detail strip
+      var strip = document.getElementById('o-detail-strip');
+      if(strip) strip.style.display = sInfo.hideStrip ? 'none' : '';
+      document.getElementById('o-brand').textContent = d.brand || '—';
+      document.getElementById('o-item').textContent  = d.item  || '—';
+      var quoteRow = document.getElementById('o-quote-row');
+      if(quoteRow) quoteRow.style.display = sInfo.hideAmount ? 'none' : '';
+      document.getElementById('o-quote').textContent = d.quote ? 'SGD ' + parseFloat(d.quote).toFixed(2) : '—';
+      // Collected date
+      var collRow = document.getElementById('o-collected-row');
+      if(collRow) collRow.style.display = sInfo.showCollectedDate ? '' : 'none';
+      if(sInfo.showCollectedDate) {
+        var collDateEl = document.getElementById('o-collected-date');
+        if(collDateEl) collDateEl.textContent = d.paidAt || '—';
+      }
+
+      // Sections
       var paySection = document.getElementById('o-payment-section');
       var colBox     = document.getElementById('o-collection-box');
       var successBox = document.getElementById('o-success-box');
@@ -1375,7 +1494,7 @@
       colBox.style.display     = 'none';
       successBox.style.display = 'none';
 
-      if(status === 'quoted - pending payment') {
+      if(sInfo.showPayment) {
         paySection.style.display = 'block';
         document.getElementById('o-pay-amount').textContent = d.quote ? parseFloat(d.quote).toFixed(2) : '—';
         document.getElementById('o-pay-ref').textContent    = 'Order Ref · ' + (d.orderNo || '');
@@ -1393,9 +1512,9 @@
           }
         } else {
           payBtn.style.display = 'none';
-          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7;padding:8px 0;">Payment link is being prepared. Please refresh in a moment or contact us quoting your order number.</p>';
+          qrEl.innerHTML = '<p style="font-size:13px;color:var(--muted);line-height:1.7;padding:8px 0;">Payment link is being prepared. Please refresh in a moment or contact us quoting your order reference.</p>';
         }
-      } else if(status === 'ready for collection') {
+      } else if(sInfo.collection) {
         colBox.style.display = 'block';
       }
 
