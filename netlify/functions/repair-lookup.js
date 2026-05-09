@@ -70,7 +70,7 @@ exports.handler = async function(event) {
   }
 
   const API_KEY      = process.env.GOOGLE_API_KEY;
-  const SHEET_ID     = process.env.SHEET_ID;         // Repair sheet
+  const SHEET_ID     = process.env.SHEET_ID || process.env.SHEET_ID_TISSOT;  // Repair + Orders sheet
   const SITE_URL     = process.env.SITE_URL || 'https://regencegroup.com';
 
   // ── 1. TRY REPAIR LOOKUP ──
@@ -146,6 +146,8 @@ exports.handler = async function(event) {
     }
   } catch(e) {
     console.error('Repair lookup error:', e.message);
+    // Don't fall through to order lookup if repair threw a system error
+    // (only fall through if no match was found, i.e. normal flow)
   }
 
   // ── 2. TRY ORDER LOOKUP ──
@@ -153,6 +155,10 @@ exports.handler = async function(event) {
     const orderUrl  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Orders!A:L?key=${API_KEY}`;
     const orderRes  = await fetch(orderUrl);
     const orderData = await orderRes.json();
+    if (!orderData.values) {
+      // Orders tab doesn't exist or returned an error — not a connection issue
+      return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: 'No record found. Please check your reference number and mobile number.' }) };
+    }
     const oRows     = (orderData.values || []).slice(1);
 
     const oMatch = oRows.find(r => {
@@ -177,6 +183,7 @@ exports.handler = async function(event) {
       let paymentLink = null;
       if (status.toLowerCase() === 'quoted - pending payment' && quote >= 0.5) {
         try {
+          console.log('Creating order Stripe session, key present:', !!(process.env.STRIPE_SECRET_KEY_TISSOT || process.env.STRIPE_SECRET_KEY));
           paymentLink = await createStripeSession({
             amount:      quote,
             description: `${brand} — ${item}`,
@@ -194,6 +201,7 @@ exports.handler = async function(event) {
               amount:         `SGD ${quote.toFixed(2)}`
             }
           });
+          console.log('Order payment link created:', !!paymentLink);
         } catch(e) {
           console.error('Stripe session error (order):', e.message);
         }
