@@ -172,8 +172,8 @@ exports.handler = async function(event) {
     });
 
     if (oMatch) {
-      const status       = (oMatch[7] || '').trim();
-      const quote        = 0; // quote not surfaced publicly
+      const status       = (oMatch[8] || '').trim();
+      const quote        = parseFloat((oMatch[7] || '0').toString().replace(/[^0-9.]/g,'')) || 0;
       const orderNo      = (oMatch[0] || '').trim();
       const name         = (oMatch[2] || '').trim();
       const email        = (oMatch[4] || '').trim();
