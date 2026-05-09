@@ -1026,6 +1026,7 @@
           return;
         }
 
+        console.log('Lookup response type:', data.type, 'paymentLink:', !!data.paymentLink, 'quotationAmount:', data.quotationAmount, 'status:', data.status);
         if(data.type === 'order') {
           document.getElementById('t-result').classList.remove('visible');
           renderOrderResult(data);
