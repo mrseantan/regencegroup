@@ -1004,6 +1004,7 @@
       errEl.classList.remove('visible');
       errEl.textContent = '';
       resultEl.classList.remove('visible');
+      document.getElementById('order-result').classList.remove('visible');
 
       if (!jobVal) { showError('Please enter your repair job number.'); return; }
       if (!/^\d{4}$/.test(mobileVal)) { showError('Please enter exactly 4 digits of your mobile number.'); return; }
@@ -1026,8 +1027,10 @@
         }
 
         if(data.type === 'order') {
+          document.getElementById('t-result').classList.remove('visible');
           renderOrderResult(data);
         } else {
+          document.getElementById('order-result').classList.remove('visible');
           renderResult(data);
         }
 
