@@ -56,6 +56,19 @@ async function createStripeSession({ amount, description, successUrl, cancelUrl,
   return data.url;
 }
 
+
+// ── PAYMENT LOG PARSER ──
+function parsePaymentsLog(log) {
+  if (!log || !log.trim()) return 0;
+  const lines = log.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let total = 0;
+  for (const line of lines) {
+    const m = line.match(/^\[(.+?)\]\s*([-]?)SGD\s*([\d.]+)\s*·\s*(.+?)\s*·\s*(.+)$/i);
+    if (m) total += (m[2] === '-' ? -1 : 1) * parseFloat(m[3]);
+  }
+  return Math.round(total * 100) / 100;
+}
+
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: HEADERS, body: '' };
   if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: HEADERS, body: '' };
@@ -75,38 +88,52 @@ exports.handler = async function(event) {
 
   // ── 1. TRY REPAIR LOOKUP ──
   try {
-    const repairUrl  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Repair%20Job!A:P?key=${API_KEY}`;
-    const repairRes  = await fetch(repairUrl);
+    // Use batchGet per-column to avoid sparse column truncation (Google Sheets drops trailing empty cells)
+    const repairCols = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V'];
+    const repairParam = repairCols.map(col => `ranges=Repair%20Job!${col}:${col}`).join('&');
+    const repairRes  = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?${repairParam}&key=${API_KEY}`);
     const repairData = await repairRes.json();
-    const rows       = (repairData.values || []).slice(1);
+    if (!repairData.valueRanges) throw new Error('batchGet failed: ' + JSON.stringify(repairData));
+
+    // Build rows array from per-column valueRanges — header row is index 0, data starts at 1
+    const colArrays = repairData.valueRanges.map(vr => (vr.values || []).map(row => (row[0] || '')));
+    const rowCount  = colArrays[0].length; // Col A drives row count
+    const rows      = [];
+    for (let i = 1; i < rowCount; i++) { // skip header row (i=0)
+      rows.push(repairCols.map((_, ci) => colArrays[ci][i] || ''));
+    }
 
     const match = rows.find(r => {
-      const rowJob    = (r[1] || '').trim().toUpperCase();
-      const inputJob  = jobNumber.trim().toUpperCase();
+      const rowJob   = (r[1] || '').trim().toUpperCase();
+      const inputJob = jobNumber.trim().toUpperCase();
       if (rowJob !== inputJob) return false;
-      const phone     = (r[4] || '').replace(/\D/g, '');
+      const phone    = (r[4] || '').replace(/\D/g, '');
       return phone.slice(-4) === mobileLast4.trim();
     });
 
     if (match) {
       const status          = (match[14] || '').trim();
       const quotationAmount = parseFloat((match[7] || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+      const paymentsLog     = match[20] || '';  // col U (index 20)
+      const totalPaid       = parsePaymentsLog(paymentsLog);
+      const balanceDue      = Math.max(0, Math.round((quotationAmount - totalPaid) * 100) / 100);
       const customerName    = (match[3] || '').trim();
       const customerEmail   = (match[5] || '').trim();
       const customerPhone   = (match[4] || '').trim();
       const brand           = (match[15] || '').trim();
-      const rowIndex        = rows.indexOf(match) + 2;
+      const rowIndex        = rows.indexOf(match) + 2; // +2: 1 for header, 1 for 1-based sheet index
       const jobNum          = (match[1] || '').trim();
       const savNum          = (match[2] || '').trim();
 
       let paymentLink = null;
-      if (status.toLowerCase() === 'quotation; pending payment' && quotationAmount >= 0.5) {
+      const needsPayment = status.toLowerCase() === 'quotation; pending payment' || status.toLowerCase().includes('quote revised');
+      if (needsPayment && balanceDue >= 0.5) {
         try {
           console.log('Repair Stripe attempt - amount:', quotationAmount, 'status:', status, 'brand:', brand, 'SITE_URL:', process.env.SITE_URL);
           paymentLink = await createStripeSession({
-            amount:      quotationAmount,
+            amount:      balanceDue,
             description: `Watch Repair — Job ${jobNum}`,
-            successUrl:  `${SITE_URL}/?payment=success&job=${encodeURIComponent(jobNum)}&amount=${encodeURIComponent(quotationAmount)}`,
+            successUrl:  `${SITE_URL}/?payment=success&job=${encodeURIComponent(jobNum)}&amount=${encodeURIComponent(balanceDue)}`,
             cancelUrl:   `${SITE_URL}/?job=${encodeURIComponent(jobNum)}`,
             email:       customerEmail,
             metadata: {
@@ -115,8 +142,9 @@ exports.handler = async function(event) {
               row_index:      rowIndex,
               customer_name:  customerName,
               customer_email: customerEmail,
+              customer_phone: customerPhone,
               brand,
-              amount:         `SGD ${quotationAmount.toFixed(2)}`
+              amount:         `SGD ${balanceDue.toFixed(2)}`
             }
           });
         } catch(e) {
@@ -138,6 +166,8 @@ exports.handler = async function(event) {
           brand,
           status,
           quotationAmount,
+          totalPaid,
+          balanceDue,
           rowIndex,
           paymentLink,
           date:            (match[0] || '').trim(),
