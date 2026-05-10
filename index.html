@@ -1121,9 +1121,9 @@
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const parts = rawDate.split('/');
         if (parts.length === 2) {
-          fmtDate = String(parts[0]).padStart(2,'0') + ' ' + months[parseInt(parts[1])-1] + ' ' + new Date().getFullYear();
+          fmtDate = String(parts[0]).padStart(2,'0') + '-' + months[parseInt(parts[1])-1] + '-' + new Date().getFullYear();
         } else if (parts.length === 3) {
-          fmtDate = String(parts[0]).padStart(2,'0') + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[2];
+          fmtDate = String(parts[0]).padStart(2,'0') + '-' + months[parseInt(parts[1])-1] + '-' + parts[2];
         }
       } catch(e) {}
       document.getElementById('r-date').textContent = fmtDate;
@@ -1519,7 +1519,7 @@
         var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         if(d.date && d.date.includes('-')) {
           var dp = d.date.split('-');
-          fmtDate = dp[2] + ' ' + months[parseInt(dp[1])-1] + ' ' + dp[0];
+          fmtDate = String(dp[2]).padStart(2,'0') + '-' + months[parseInt(dp[1])-1] + '-' + dp[0];
         }
       } catch(e) {}
       document.getElementById('o-date').textContent = fmtDate;
