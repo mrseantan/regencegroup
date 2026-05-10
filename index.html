@@ -708,6 +708,24 @@
             <div class="status-rule" id="r-status-rule" style="display:none;"></div>
             <div class="status-notify" id="r-status-notify" style="display:none;"></div>
             <div id="r-quotation-box" style="display:none;">
+        <!-- Revision breakdown — shown for Quote Revised status with prior payment -->
+        <div id="r-revision-box" style="display:none;border:0.5px solid rgba(184,160,106,0.35);overflow:hidden;margin-bottom:16px;">
+          <div style="padding:11px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.2);">
+            <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin:0;">Balance Due</p>
+          </div>
+          <div style="padding:12px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.12);display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Previously Paid</span>
+            <span id="r-prev-paid" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:var(--muted);"></span>
+          </div>
+          <div style="padding:12px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.12);display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Revised Total</span>
+            <span id="r-revised-total" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:var(--ink);"></span>
+          </div>
+          <div style="padding:12px 20px;background:var(--warm);display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Balance Due</span>
+            <span id="r-balance-due" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--gold-dark);"></span>
+          </div>
+        </div>
               <div class="payment-box" id="payment-box-inner">
                 <div class="payment-header">
                   <p class="payment-eyebrow">Repair Quotation</p>
@@ -721,7 +739,7 @@
                   <p class="payment-note">To authorise the repair, please complete payment below. <strong>All payments are strictly non-refundable.</strong> Declining will result in your timepiece being returned without repair.</p>
                   <div class="cta-wrap">
                     <span class="cta-badge">Secure Payment</span>
-                    <div id="r-payment-link" onclick="openPaymentLink()" style="display:block;width:100%;padding:18px 16px;background:#1A1814;color:#FDFCFA;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:'Jost',sans-serif;box-sizing:border-box;">Proceed to Payment</div>
+                    <div id="r-payment-link" onclick="openPaymentLink()" style="display:block;width:100%;padding:18px 16px;background:#1A1814;color:#FDFCFA;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:'Jost',sans-serif;box-sizing:border-box;" data-default-label="Proceed to Payment">Proceed to Payment</div>
                   </div>
                   <div class="trust-row">
                     <div class="trust-item"><div class="trust-dot"></div><span>256-bit encrypted</span></div>
@@ -1009,6 +1027,7 @@
       'repair processed under warranty; no payment required': { step: 2, label: 'Repair processed under warranty', sub: 'Your timepiece is in our watchmaker\'s hands. As this repair is covered under warranty, no payment will be required.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', warranty: true },
       'repair processed under warranty':            { step: 2, label: 'Repair processed under warranty', sub: 'Your timepiece is in our watchmaker\'s hands. As this repair is covered under warranty, no payment will be required.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', warranty: true },
       'quotation; pending payment':                 { step: 1, label: 'Quotation — pending payment', sub: 'Please review the quotation below and proceed with payment to authorise the repair.', showQuote: true },
+      'quote revised — balance pending':            { step: 1, label: 'Your timepiece is ready to proceed.', sub: 'Complete the balance payment and your repair will begin immediately.', showQuote: true, showRevision: true, eyebrow: 'Action Required' },
       'quotation accepted; repair begun':           { step: 2, label: 'Quotation accepted — repair begun', sub: 'The repair has commenced. Your timepiece is in expert hands.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.' },
       'quotation rejected; return without repair':  { step: 1, label: 'Your timepiece is being prepared for return.', sub: 'We note your decision. Your timepiece will be returned to you without intervention.', notify: 'You will be notified by email when your timepiece is ready for collection. Please retain your job reference number for any enquiries.', rejected: true },
       'ready for collection':                       { step: 3, label: 'Your timepiece awaits you.', sub: 'The repair is complete and your timepiece has been prepared for return. We look forward to placing it back in your hands.', collection: true },
@@ -1113,7 +1132,7 @@
           eyebrowEl.textContent = 'Quotation Declined';
           eyebrowEl.className = 'status-eyebrow red';
         } else {
-          eyebrowEl.textContent = 'Current Status';
+          eyebrowEl.textContent = sInfo.eyebrow || 'Current Status';
           eyebrowEl.className = 'status-eyebrow';
         }
       }
@@ -1147,11 +1166,38 @@
       // Quotation + payment box
       const qBox = document.getElementById('r-quotation-box');
       if (sInfo.showQuote && d.quotationAmount) {
-        const amtClean = String(d.quotationAmount).replace(/[^0-9.]/g, '');
-        document.getElementById('r-amount').textContent = amtClean;
+        // Show revision breakdown if quote has been revised and partial payment exists
+        const revisionBox = document.getElementById('r-revision-box');
+        if (sInfo.showRevision && revisionBox) {
+          const prevPaid = parseFloat(d.totalPaid || 0);
+          const balance  = parseFloat(d.balanceDue || d.quotationAmount);
+          if (prevPaid > 0) {
+            document.getElementById('r-prev-paid').textContent  = 'SGD ' + prevPaid.toFixed(2);
+            document.getElementById('r-revised-total').textContent = 'SGD ' + parseFloat(d.quotationAmount).toFixed(2);
+            document.getElementById('r-balance-due').textContent = 'SGD ' + balance.toFixed(2);
+            revisionBox.style.display = 'block';
+            // Show balance in main amount field
+            document.getElementById('r-amount').textContent = balance.toFixed(2);
+          } else {
+            revisionBox.style.display = 'none';
+            document.getElementById('r-amount').textContent = String(d.quotationAmount).replace(/[^0-9.]/g, '');
+          }
+        } else {
+          if (revisionBox) revisionBox.style.display = 'none';
+          document.getElementById('r-amount').textContent = String(d.quotationAmount).replace(/[^0-9.]/g, '');
+        }
         const refEl = document.getElementById('r-payment-ref');
-        if (refEl) refEl.textContent = 'Job Ref · ' + (d.jobNumber || '');
+        if (refEl) {
+          if (sInfo.showRevision) {
+            refEl.textContent = 'Your repair cannot proceed until the balance is confirmed. Click below to complete payment securely — it takes less than a minute.';
+          } else {
+            refEl.textContent = 'Job Ref · ' + (d.jobNumber || '');
+          }
+        }
         qBox.style.display = 'block';
+        // Update CTA label for revision
+        const payBtnEl = document.getElementById('r-payment-link');
+        if (payBtnEl) payBtnEl.textContent = sInfo.showRevision ? 'Complete Payment' : (payBtnEl.dataset.defaultLabel || 'Proceed to Payment');
         // store data for decline function
         window._currentJob = d;
         const payBtn = document.getElementById('r-payment-link');
