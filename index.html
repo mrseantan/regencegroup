@@ -607,6 +607,24 @@
             </div>
             <!-- Payment box -->
             <div id="o-payment-section" style="display:none;">
+              <!-- Revision breakdown — shown for Order Revised status with prior payment -->
+              <div id="o-revision-box" style="display:none;border:0.5px solid rgba(184,160,106,0.35);overflow:hidden;margin-bottom:16px;">
+                <div style="padding:11px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.2);">
+                  <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin:0;">Balance Due</p>
+                </div>
+                <div style="padding:12px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.12);display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Previously Paid</span>
+                  <span id="o-prev-paid" style="font-family:Cormorant Garamond,Georgia,serif;font-size:15px;color:var(--muted);"></span>
+                </div>
+                <div style="padding:12px 20px;background:var(--warm);border-bottom:0.5px solid rgba(184,160,106,0.12);display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Revised Total</span>
+                  <span id="o-revised-total" style="font-family:Cormorant Garamond,Georgia,serif;font-size:15px;color:var(--ink);"></span>
+                </div>
+                <div style="padding:12px 20px;background:var(--warm);display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">Balance Due</span>
+                  <span id="o-balance-due" style="font-family:Cormorant Garamond,Georgia,serif;font-size:18px;color:var(--gold-dark);"></span>
+                </div>
+              </div>
               <div class="payment-box">
                 <div class="payment-header">
                   <p class="payment-eyebrow">Payment Request</p>
@@ -633,6 +651,7 @@
                     <p class="payment-qr-label">Scan with your phone camera</p>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
             <!-- Order success box -->
@@ -1416,6 +1435,15 @@
 
     // Order status map — DHL-style 4-step progress
     const ORDER_STATUS_MAP = {
+      'order revised — balance pending': {
+        step: 0,
+        label: 'Your order quotation has been revised.',
+        sub: 'Complete the balance payment and your order will proceed immediately.',
+        showPayment: true,
+        showRevision: true,
+        hideStrip: true,
+        eyebrow: 'Action Required'
+      },
       'quoted - pending payment': {
         step: 0,
         label: 'Payment pending.',
@@ -1502,6 +1530,8 @@
       buildOrderProgress(sInfo.step);
 
       // Status detail
+      var oEyebrow = document.getElementById('o-status-eyebrow');
+      if(oEyebrow) oEyebrow.textContent = sInfo.eyebrow || 'Current Status';
       document.getElementById('o-status-text').textContent = sInfo.label;
       document.getElementById('o-status-sub').textContent  = sInfo.sub;
 
@@ -1542,10 +1572,31 @@
 
       if(sInfo.showPayment) {
         paySection.style.display = 'block';
-        document.getElementById('o-pay-amount').textContent = d.quote ? parseFloat(d.quote).toFixed(2) : '—';
-        document.getElementById('o-pay-ref').textContent    = 'Order Ref · ' + (d.orderNo || '');
         window._currentOrder = d;
         _orderPaymentUrl     = d.paymentLink || null;
+
+        // Revision breakdown for Order Revised — Balance Pending
+        var oRevBox = document.getElementById('o-revision-box');
+        if(sInfo.showRevision && oRevBox) {
+          var prevPaid  = parseFloat(d.totalPaid || 0);
+          var balance   = parseFloat(d.balanceDue || d.quote || 0);
+          if(prevPaid > 0) {
+            document.getElementById('o-prev-paid').textContent    = 'SGD ' + prevPaid.toFixed(2);
+            document.getElementById('o-revised-total').textContent = 'SGD ' + parseFloat(d.quote).toFixed(2);
+            document.getElementById('o-balance-due').textContent   = 'SGD ' + balance.toFixed(2);
+            oRevBox.style.display = 'block';
+            document.getElementById('o-pay-amount').textContent = balance.toFixed(2);
+            document.getElementById('o-pay-ref').textContent = 'Your order cannot proceed until the balance is confirmed. Click below to complete payment securely.';
+          } else {
+            oRevBox.style.display = 'none';
+            document.getElementById('o-pay-amount').textContent = d.quote ? parseFloat(d.quote).toFixed(2) : '—';
+            document.getElementById('o-pay-ref').textContent = 'Order Ref · ' + (d.orderNo || '');
+          }
+        } else {
+          if(oRevBox) oRevBox.style.display = 'none';
+          document.getElementById('o-pay-amount').textContent = d.quote ? parseFloat(d.quote).toFixed(2) : '—';
+          document.getElementById('o-pay-ref').textContent = 'Order Ref · ' + (d.orderNo || '');
+        }
         var qrEl  = document.getElementById('o-qr-code');
         var payBtn = document.getElementById('o-payment-btn');
         qrEl.innerHTML = '';

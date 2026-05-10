@@ -168,6 +168,7 @@ exports.handler = async function(event) {
           quotationAmount,
           totalPaid,
           balanceDue,
+          overpaid: totalPaid > quotationAmount && quotationAmount > 0,
           rowIndex,
           paymentLink,
           date:            (match[0] || '').trim(),
@@ -184,14 +185,20 @@ exports.handler = async function(event) {
 
   // ── 2. TRY ORDER LOOKUP ──
   try {
-    const orderUrl  = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Orders!A:L?key=${API_KEY}`;
-    const orderRes  = await fetch(orderUrl);
-    const orderData = await orderRes.json();
-    if (!orderData.values) {
-      // Orders tab doesn't exist or returned an error — not a connection issue
+    // Per-column batchGet to avoid sparse truncation — reads through col S (PaymentsLog, TotalPaid)
+    const ordCols3   = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S'];
+    const ordParam3  = ordCols3.map(col => `ranges=Orders!${col}:${col}`).join('&');
+    const ordRes3    = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?${ordParam3}&key=${API_KEY}`);
+    const ordData3   = await ordRes3.json();
+    if (!ordData3.valueRanges) {
       return { statusCode: 404, headers: HEADERS, body: JSON.stringify({ error: 'No record found. Please check your reference number and mobile number.' }) };
     }
-    const oRows     = (orderData.values || []).slice(1);
+    const ordColArrays3 = ordData3.valueRanges.map(vr => (vr.values || []).map(row => (row[0] || '')));
+    const ordRowCount3  = ordColArrays3[0].length;
+    const oRows = [];
+    for (let i = 1; i < ordRowCount3; i++) {
+      oRows.push(ordCols3.map((_, ci) => ordColArrays3[ci][i] || ''));
+    }
 
     const oMatch = oRows.find(r => {
       const rowOrder   = (r[0] || '').trim().toUpperCase();
@@ -202,24 +209,31 @@ exports.handler = async function(event) {
     });
 
     if (oMatch) {
-      const status       = (oMatch[8] || '').trim();
+      const status       = (oMatch[8]  || '').trim();
       const quote        = parseFloat((oMatch[7] || '0').toString().replace(/[^0-9.]/g,'')) || 0;
-      const orderNo      = (oMatch[0] || '').trim();
-      const name         = (oMatch[2] || '').trim();
-      const email        = (oMatch[4] || '').trim();
-      const phone        = (oMatch[3] || '').trim();
-      const brand        = (oMatch[5] || '').trim();
-      const item         = (oMatch[6] || '').trim();
+      const orderNo      = (oMatch[0]  || '').trim();
+      const name         = (oMatch[2]  || '').trim();
+      const email        = (oMatch[4]  || '').trim();
+      const phone        = (oMatch[3]  || '').trim();
+      const brand        = (oMatch[5]  || '').trim();
+      const item         = (oMatch[6]  || '').trim();
+      const paymentsLog  = (oMatch[17] || '').trim(); // col R
       const rowIndex     = oRows.indexOf(oMatch) + 2;
 
+      // Calculate balance from PaymentsLog
+      const totalPaid = parsePaymentsLog(paymentsLog);
+      const balanceDue = Math.max(0, Math.round((quote - totalPaid) * 100) / 100);
+
       let paymentLink = null;
-      if (status.toLowerCase() === 'quoted - pending payment' && quote >= 0.5) {
+      const needsPayment = status.toLowerCase() === 'quoted - pending payment'
+        || status.toLowerCase() === 'order revised — balance pending';
+      if (needsPayment && balanceDue >= 0.5) {
         try {
-          console.log('Creating order Stripe session, key present:', !!(process.env.STRIPE_SECRET_KEY_TISSOT || process.env.STRIPE_SECRET_KEY));
+          console.log('Creating order Stripe session, balance:', balanceDue);
           paymentLink = await createStripeSession({
-            amount:      quote,
+            amount:      balanceDue,
             description: `${brand} — ${item}`,
-            successUrl:  `${SITE_URL}/?order_payment=success&order=${encodeURIComponent(orderNo)}&amount=${encodeURIComponent(quote)}`,
+            successUrl:  `${SITE_URL}/?order_payment=success&order=${encodeURIComponent(orderNo)}&amount=${encodeURIComponent(balanceDue)}`,
             cancelUrl:   `${SITE_URL}/?order=${encodeURIComponent(orderNo)}`,
             email,
             metadata: {
@@ -228,9 +242,10 @@ exports.handler = async function(event) {
               row_index:      rowIndex,
               customer_name:  name,
               customer_email: email,
+              customer_phone: phone,
               brand,
               item,
-              amount:         `SGD ${quote.toFixed(2)}`
+              amount:         `SGD ${balanceDue.toFixed(2)}`
             }
           });
           console.log('Order payment link created:', !!paymentLink);
@@ -251,6 +266,8 @@ exports.handler = async function(event) {
           brand,
           item,
           quote,
+          totalPaid,
+          balanceDue,
           status,
           rowIndex,
           date:      (oMatch[1] || '').trim(),
