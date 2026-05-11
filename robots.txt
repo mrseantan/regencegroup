@@ -1,0 +1,11 @@
+# robots.txt — regencegroup.com
+# https://www.regencegroup.com/robots.txt
+
+User-agent: *
+Allow: /
+
+# Block Netlify function endpoints from indexing
+Disallow: /.netlify/
+Disallow: /netlify/
+
+Sitemap: https://www.regencegroup.com/sitemap.xml
